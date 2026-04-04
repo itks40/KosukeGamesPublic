@@ -1,0 +1,10 @@
+# Firebase
+.firebase/
+.firebaserc
+firebase.json
+
+# 作業メモ・要件定義
+*.md
+
+# Node
+node_modules/
