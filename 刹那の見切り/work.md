@@ -1,1 +1,0 @@
-https://setsuna-a37a5-default-rtdb.asia-southeast1.firebasedatabase.app/
