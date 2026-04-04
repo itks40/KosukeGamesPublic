@@ -8,3 +8,6 @@ firebase.json
 
 # Node
 node_modules/
+
+# サーバーサイドゲーム（fly.devで運用）
+無個性戦隊風ゲーム/
