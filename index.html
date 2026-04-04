@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Games</title>
+  <title>KosukeGames</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
     * {
       margin: 0;
       padding: 0;
@@ -12,117 +14,178 @@
     }
 
     body {
-      background: #0f0f13;
+      background: #080810;
       color: #e0e0e0;
-      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
+    /* ---- background glow ---- */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse at center, rgba(80, 60, 200, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- header ---- */
     header {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      padding: 60px 20px 40px;
+      padding: 72px 20px 48px;
     }
 
-    header h1 {
-      font-size: 2.4rem;
+    .logo {
+      display: inline-block;
+      font-size: 2rem;
       font-weight: 700;
-      letter-spacing: 0.1em;
-      color: #ffffff;
+      letter-spacing: 0.12em;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     header p {
       margin-top: 10px;
-      color: #888;
-      font-size: 0.95rem;
+      color: #555;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
     }
 
+    /* ---- divider ---- */
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      margin: 16px auto 0;
+      border-radius: 2px;
+    }
+
+    /* ---- grid ---- */
     .games {
+      position: relative;
+      z-index: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 28px;
       max-width: 1100px;
       margin: 0 auto;
-      padding: 0 24px 80px;
+      padding: 0 28px 100px;
     }
 
+    /* ---- card ---- */
     .card {
-      background: #1a1a24;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
       overflow: hidden;
-      transition: transform 0.2s, border-color 0.2s;
+      transition: transform 0.25s cubic-bezier(.22,.68,0,1.2), box-shadow 0.25s, border-color 0.25s;
+      backdrop-filter: blur(8px);
     }
 
     .card:hover {
-      transform: translateY(-4px);
-      border-color: #5566ff;
+      transform: translateY(-6px) scale(1.01);
+      border-color: rgba(167, 139, 250, 0.5);
+      box-shadow: 0 16px 40px rgba(80, 60, 200, 0.2);
     }
 
     .card-thumb {
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: #12121a;
+      background: linear-gradient(135deg, #0e0e1a, #16163a);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
+      font-size: 3.5rem;
       user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(8,8,16,0.6));
     }
 
     .card-body {
-      padding: 20px;
+      padding: 20px 22px 12px;
     }
 
     .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f0f0ff;
+      margin-bottom: 6px;
     }
 
     .card-desc {
-      font-size: 0.85rem;
-      color: #888;
-      line-height: 1.6;
-      min-height: 2.8em;
+      font-size: 0.82rem;
+      color: #666;
+      line-height: 1.7;
+      min-height: 2.6em;
     }
 
     .card-footer {
-      padding: 0 20px 20px;
+      padding: 12px 22px 22px;
     }
 
     .play-btn {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       width: 100%;
-      padding: 10px;
-      background: #5566ff;
+      padding: 11px;
+      background: linear-gradient(135deg, #7c6fe0, #5b8dee);
       color: #fff;
-      text-align: center;
       text-decoration: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      transition: background 0.15s;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      transition: opacity 0.15s, transform 0.15s;
     }
 
     .play-btn:hover {
-      background: #7788ff;
+      opacity: 0.9;
+      transform: scale(0.98);
     }
 
+    .play-btn svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ---- footer ---- */
     footer {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      padding: 30px;
-      color: #444;
-      font-size: 0.8rem;
-      border-top: 1px solid #1e1e2a;
+      padding: 28px;
+      color: #333;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>KosukeGames</h1>
+  <div class="logo">KosukeGames</div>
+  <div class="divider"></div>
   <p>プレイできるゲーム一覧</p>
 </header>
 
@@ -135,7 +198,10 @@
       <div class="card-desc"></div>
     </div>
     <div class="card-footer">
-      <a class="play-btn" href="./ボンド/" target="_blank" rel="noopener">プレイする</a>
+      <a class="play-btn" href="./ボンド/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><polygon points="4,2 14,8 4,14"/></svg>
+        プレイする
+      </a>
     </div>
   </div>
 
@@ -146,7 +212,10 @@
       <div class="card-desc"></div>
     </div>
     <div class="card-footer">
-      <a class="play-btn" href="./トラタク/" target="_blank" rel="noopener">プレイする</a>
+      <a class="play-btn" href="./トラタク/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><polygon points="4,2 14,8 4,14"/></svg>
+        プレイする
+      </a>
     </div>
   </div>
 
@@ -157,7 +226,10 @@
       <div class="card-desc"></div>
     </div>
     <div class="card-footer">
-      <a class="play-btn" href="./刹那の見切り/online.html" target="_blank" rel="noopener">プレイする</a>
+      <a class="play-btn" href="./刹那の見切り/online.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><polygon points="4,2 14,8 4,14"/></svg>
+        プレイする
+      </a>
     </div>
   </div>
 
@@ -168,14 +240,17 @@
       <div class="card-desc"></div>
     </div>
     <div class="card-footer">
-      <a class="play-btn" href="https://mukoseitai-game.fly.dev/" target="_blank" rel="noopener">プレイする</a>
+      <a class="play-btn" href="https://mukoseitai-game.fly.dev/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><polygon points="4,2 14,8 4,14"/></svg>
+        プレイする
+      </a>
     </div>
   </div>
 
 </main>
 
 <footer>
-  &copy; 2026
+  &copy; 2026 KosukeGames
 </footer>
 
 </body>
