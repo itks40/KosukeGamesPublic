@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "トラタク要件定義.md",
+      "トラタク作業メモ.md"
+    ]
+  }
+}

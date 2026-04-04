@@ -1,0 +1,2793 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ボンド - オンライン対戦</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a4a2e;
+    color: #fff;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: #1e5c38;
+    padding: 0 0 20px 0;
+    position: relative;
+  }
+
+  /* ===== TOP BAR ===== */
+  .topbar {
+    background: rgba(0,0,0,0.4);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar .chip-p1 { color: #ff9999; }
+  .topbar .chip-pot { color: #ffd700; font-size: 15px; }
+  .topbar .chip-p2 { color: #99ccff; }
+  .turn-indicator {
+    background: rgba(0,0,0,0.3);
+    text-align: center;
+    padding: 4px;
+    font-size: 12px;
+    color: #ccc;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section-opp {
+    background: rgba(180,30,30,0.15);
+    border-bottom: 2px solid rgba(180,30,30,0.4);
+    padding: 8px;
+  }
+  .section-self {
+    background: rgba(30,180,80,0.15);
+    border-top: 2px solid rgba(30,180,80,0.4);
+    padding: 8px;
+  }
+  .section-label {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  /* ===== CARDS ===== */
+  .card-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 94px;
+    align-items: flex-start;
+  }
+  .card {
+    width: 60px;
+    height: 90px;
+    border-radius: 7px;
+    border: 2px solid #999;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: default;
+    transition: transform 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+    position: relative;
+    user-select: none;
+  }
+  .card .rank { font-size: 16px; line-height: 1; }
+  .card .suit { font-size: 22px; line-height: 1; text-align: right; }
+  .card .rank-bot { font-size: 16px; line-height: 1; text-align: right; transform: rotate(180deg); }
+  .card.red { color: #cc0000; }
+  .card.black { color: #111; }
+  .card.joker {
+    background: linear-gradient(135deg, #2d1b69, #5a2d82);
+    color: #fff;
+    border-color: #9b59b6;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+  }
+  .card.joker .joker-label {
+    font-size: 9px;
+    color: #ddd;
+    position: absolute;
+    bottom: 3px;
+    width: 100%;
+    text-align: center;
+  }
+  .card.facedown {
+    background: repeating-linear-gradient(
+      45deg,
+      #1a3a8a,
+      #1a3a8a 4px,
+      #2244aa 4px,
+      #2244aa 8px
+    );
+    border-color: #3355cc;
+  }
+  .card.clickable { cursor: pointer; }
+  .card.clickable:hover { transform: translateY(-4px); border-color: #ffcc00; }
+  .card.selected {
+    transform: translateY(-8px);
+    border-color: #ffcc00 !important;
+    border-width: 3px;
+    box-shadow: 0 4px 12px rgba(255,204,0,0.5);
+  }
+  .card.highlight-win {
+    border-color: #00ff88 !important;
+    border-width: 3px;
+    box-shadow: 0 0 12px rgba(0,255,136,0.6);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: #27ae60; color: #fff; }
+  .btn-primary:hover { background: #2ecc71; }
+  .btn-danger { background: #c0392b; color: #fff; }
+  .btn-danger:hover { background: #e74c3c; }
+  .btn-info { background: #2980b9; color: #fff; }
+  .btn-info:hover { background: #3498db; }
+  .btn-warn { background: #d35400; color: #fff; }
+  .btn-warn:hover { background: #e67e22; }
+  .btn-gray { background: #555; color: #ccc; cursor: not-allowed; }
+  .btn-done { background: #2d5a2d; color: #88cc88; cursor: not-allowed; border: 1px solid #4a8a4a; }
+  .btn-big { padding: 16px 28px; font-size: 18px; width: 100%; margin-bottom: 10px; }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+  .btn-row .btn { flex: 1; min-width: 70px; text-align: center; }
+
+  /* ===== LOBBY ===== */
+  .title-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+  }
+  .title-screen h1 {
+    font-size: 64px;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    margin-bottom: 8px;
+    letter-spacing: 8px;
+  }
+  .title-screen .subtitle {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  .or-divider {
+    color: #666;
+    font-size: 13px;
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid #444;
+  }
+  .join-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .join-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 2px solid #444;
+    background: #0a2a18;
+    color: #fff;
+    font-size: 16px;
+    font-family: inherit;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .join-row input:focus { outline: none; border-color: #27ae60; }
+  .firebase-warn {
+    background: rgba(200,100,0,0.2);
+    border: 1px solid rgba(200,100,0,0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #ffaa66;
+    text-align: left;
+    width: 100%;
+  }
+  .firebase-warn code {
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  /* ===== WAITING ===== */
+  .waiting-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+  }
+  .room-code-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 20px 32px;
+    margin: 20px 0;
+  }
+  .room-code-label {
+    font-size: 12px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .room-code-value {
+    font-size: 40px;
+    font-weight: bold;
+    color: #ffd700;
+    letter-spacing: 8px;
+    font-family: monospace;
+  }
+  .spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top-color: #27ae60;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .waiting-msg {
+    font-size: 14px;
+    color: #aaa;
+    margin: 10px 0;
+  }
+
+  /* ===== OPP TURN WAITING ===== */
+  .opp-waiting-msg {
+    text-align: center;
+    padding: 16px;
+    font-size: 14px;
+    color: #aaa;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  /* ===== PHASE SPECIFIC ===== */
+  .action-area {
+    padding: 8px;
+  }
+  .middle-area {
+    background: rgba(0,0,0,0.2);
+    padding: 8px;
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .deck-info { font-size: 12px; color: #aaa; padding: 4px 8px; }
+
+  .phase-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffd700;
+    padding: 10px;
+  }
+  .phase-desc {
+    text-align: center;
+    font-size: 13px;
+    color: #ccc;
+    padding: 4px 10px 10px;
+  }
+
+  .result-box {
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px;
+    text-align: center;
+  }
+  .result-box .hand-name { font-size: 18px; color: #ffd700; font-weight: bold; }
+  .result-box .result-msg { font-size: 22px; font-weight: bold; margin: 8px 0; }
+  .result-win { color: #00ff88; }
+  .result-lose { color: #ff4444; }
+  .result-draw { color: #ffaa00; }
+
+  .showdown-player {
+    padding: 8px;
+  }
+  .showdown-player .player-label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .p1-label { background: rgba(180,30,30,0.4); color: #ff9999; }
+  .p2-label { background: rgba(30,80,180,0.4); color: #99ccff; }
+
+  .doubt-resolve-area {
+    padding: 8px;
+  }
+
+  .info-msg {
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 6px 8px;
+    font-size: 13px;
+    color: #ccc;
+    text-align: center;
+  }
+  .info-msg.success { border-left: 4px solid #00ff88; color: #00ff88; }
+  .info-msg.failure { border-left: 4px solid #ff4444; color: #ff9999; }
+
+  .game-over-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    min-height: 100vh;
+    justify-content: center;
+  }
+  .game-over-screen h2 { font-size: 28px; color: #ffd700; margin-bottom: 20px; }
+  .game-over-screen .chips-final {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .game-over-screen .winner-msg {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ff88;
+    margin: 16px 0;
+  }
+
+  .select-count {
+    text-align: center;
+    font-size: 13px;
+    color: #ffd700;
+    padding: 4px;
+  }
+
+  .match-info {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    padding: 4px;
+  }
+
+  .hand-eval {
+    font-size: 12px;
+    color: #aaa;
+    padding: 2px 4px;
+  }
+
+  /* ===== CONNECTION STATUS ===== */
+  .conn-status {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+  }
+  .conn-status.ok { color: #00ff88; }
+  .conn-status.err { color: #ff4444; }
+
+  .error-banner {
+    background: rgba(180,0,0,0.7);
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 13px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 300;
+  }
+
+  .role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 6px;
+  }
+  .role-badge.p1 { background: rgba(180,30,30,0.5); color: #ff9999; }
+  .role-badge.p2 { background: rgba(30,80,180,0.5); color: #99ccff; }
+
+  .reconnect-box {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    width: 100%;
+    font-size: 14px;
+    text-align: left;
+  }
+  .reconnect-box h3 { color: #ffd700; margin-bottom: 8px; font-size: 15px; }
+  .reconnect-box p { color: #aaa; font-size: 12px; margin-bottom: 12px; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes cardDeal {
+    from { transform: translateY(-24px) scale(0.75); opacity: 0; }
+    to   { transform: translateY(0)     scale(1);    opacity: 1; }
+  }
+  @keyframes winPulse {
+    0%,100% { box-shadow: 0 0 12px rgba(0,255,136,0.6); }
+    50%     { box-shadow: 0 0 32px rgba(0,255,136,1), 0 0 60px rgba(0,255,136,0.4); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    15%     { transform: translateX(-10px); }
+    35%     { transform: translateX(10px); }
+    55%     { transform: translateX(-7px); }
+    75%     { transform: translateX(7px); }
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0.4); opacity: 0; }
+    65%  { transform: scale(1.08); }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+  @keyframes fadeInUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  @keyframes glow {
+    0%,100% { text-shadow: 0 0 8px currentColor; }
+    50%     { text-shadow: 0 0 24px currentColor, 0 0 40px currentColor; }
+  }
+  .card-deal { animation: cardDeal 0.22s ease-out both; }
+  .card-row .card-deal:nth-child(1) { animation-delay: 0.00s; }
+  .card-row .card-deal:nth-child(2) { animation-delay: 0.06s; }
+  .card-row .card-deal:nth-child(3) { animation-delay: 0.12s; }
+  .card-row .card-deal:nth-child(4) { animation-delay: 0.18s; }
+  .card-row .card-deal:nth-child(5) { animation-delay: 0.24s; }
+  .card.highlight-win {
+    border-color: #00ff88 !important;
+    border-width: 3px;
+    animation: winPulse 1.2s ease-in-out infinite;
+  }
+  .shake { animation: shake 0.45s ease-in-out; }
+  .pop-in { animation: popIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .fade-in-up { animation: fadeInUp 0.28s ease-out both; }
+  .glow-text { animation: glow 1.5s ease-in-out infinite; }
+  .card.new-draw {
+    border-color: #00ccff !important;
+    border-width: 3px;
+    box-shadow: 0 0 10px rgba(0,200,255,0.6);
+  }
+  .card.new-draw::after {
+    content: 'NEW';
+    position: absolute;
+    top: -8px; left: 50%; transform: translateX(-50%);
+    background: #00ccff; color: #000;
+    font-size: 8px; font-weight: bold;
+    padding: 1px 4px; border-radius: 3px;
+    white-space: nowrap;
+  }
+  .card.just-discarded {
+    border-color: #ff9900 !important;
+    border-width: 3px;
+    box-shadow: 0 0 10px rgba(255,153,0,0.6);
+    opacity: 0.85;
+  }
+  .card.just-discarded::after {
+    content: '捨';
+    position: absolute;
+    top: -8px; left: 50%; transform: translateX(-50%);
+    background: #ff9900; color: #000;
+    font-size: 8px; font-weight: bold;
+    padding: 1px 4px; border-radius: 3px;
+  }
+
+  /* ===== ROOM LIST ===== */
+  .room-list { width: 100%; margin-top: 6px; }
+  .room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid #3a6a3a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    width: 100%;
+  }
+  .room-item:empty { display: none; }
+  .room-empty { color: #666; font-size: 13px; text-align: center; padding: 10px; }
+
+  /* ===== RULES PANEL ===== */
+  .rules-overlay {
+    position: fixed;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px; height: 100%;
+    background: rgba(10,25,15,0.97);
+    z-index: 500;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+  .rules-overlay .rules-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.4);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .rules-overlay .rules-header h2 { color: #ffd700; font-size: 18px; }
+  .rules-content { padding: 12px 14px; font-size: 13px; color: #ccc; line-height: 1.6; }
+  .rules-content h3 { color: #ffd700; font-size: 14px; margin: 12px 0 5px; border-left: 3px solid #ffd700; padding-left: 8px; }
+  .rules-content ul, .rules-content ol { padding-left: 18px; margin: 0 0 6px; }
+  .rules-content li { margin-bottom: 4px; }
+  .rules-content strong { color: #fff; }
+  .rules-inline {
+    background: rgba(0,0,0,0.3); border-radius: 8px;
+    padding: 10px 12px; margin: 10px 0;
+    font-size: 12px; color: #ccc; text-align: left;
+    width: 100%;
+  }
+  .rules-inline h3 { color: #ffd700; font-size: 12px; margin: 8px 0 3px; }
+  .rules-inline ul, .rules-inline ol { padding-left: 16px; margin: 0; }
+  .rules-inline li { margin-bottom: 2px; }
+  .rules-btn {
+    background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4);
+    color: #ffd700; border-radius: 6px; padding: 3px 8px;
+    font-size: 11px; font-weight: bold; cursor: pointer; font-family: inherit;
+  }
+  .rules-btn:hover { background: rgba(255,215,0,0.25); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="conn-status ok" id="conn-status">● 待機中</div>
+
+<script>
+// =====================================================
+// FIREBASE CONFIG
+// =====================================================
+const FIREBASE_DB_URL = 'https://bond-4fbac-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+// =====================================================
+// FIREBASE REST API HELPERS
+// =====================================================
+async function fbWrite(path, data) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(`Firebase write failed: ${res.status}`);
+}
+
+async function fbPatch(path, data) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(`Firebase patch failed: ${res.status}`);
+}
+
+async function fbRead(path) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`);
+  if (!res.ok) throw new Error(`Firebase read failed: ${res.status}`);
+  return await res.json();
+}
+
+function fbListen(path, onPut, onPatch) {
+  const es = new EventSource(`${FIREBASE_DB_URL}${path}.json`);
+  es.addEventListener('put', e => {
+    const d = JSON.parse(e.data);
+    onPut && onPut(d.data, d.path);
+  });
+  es.addEventListener('patch', e => {
+    const d = JSON.parse(e.data);
+    onPatch && onPatch(d.data, d.path);
+  });
+  es.onerror = () => {
+    showError('接続が切断されました。ページを再読み込みしてください。');
+    setConnStatus(false);
+  };
+  return es;
+}
+
+function setConnStatus(ok) {
+  const el = document.getElementById('conn-status');
+  if (!el) return;
+  if (ok) { el.textContent = '● 接続中'; el.className = 'conn-status ok'; }
+  else { el.textContent = '● 切断'; el.className = 'conn-status err'; }
+}
+
+let errorMsg = null;
+function showError(msg) {
+  errorMsg = msg;
+  render();
+}
+
+// =====================================================
+// CONSTANTS
+// =====================================================
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['9','10','J','Q','K','A'];
+const RANK_VALS = {9:9,10:10,'J':11,'Q':12,'K':13,'A':14};
+const RANK_NAMES = ['9','10','J','Q','K','A'];
+const HAND_NAMES = ['','ハイカード','ワンペア','ツーペア','スリーカード',
+  'ストレート','フラッシュ','フルハウス','フォーカード',
+  'ストレートフラッシュ','ロイヤルフラッシュ'];
+
+// =====================================================
+// SOUND & EFFECTS
+// =====================================================
+let audioCtx = null;
+let bgmPlaying = false;
+let bgmTimer = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return audioCtx;
+}
+
+function playTone(freq, duration, type='sine', vol=0.3, delay=0) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+    gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + duration + 0.01);
+  } catch(e) {}
+}
+
+function sfxCardClick()  { playTone(900, 0.04, 'square',   0.12); }
+function sfxClick()      { playTone(500, 0.07, 'sine',     0.18); }
+function sfxDeal()       { for (let i=0;i<5;i++) playTone(300+i*60, 0.08, 'triangle', 0.1, i*0.07); }
+function sfxRob()        { playTone(550, 0.09, 'sawtooth', 0.18); playTone(780, 0.12, 'sawtooth', 0.2, 0.1); }
+function sfxDrawCards()  { [220,320,260,400,300].forEach((f,i) => playTone(f, 0.06, 'triangle', 0.1, i*0.04)); }
+function sfxDoubtSuccess() { [440,554,659,880].forEach((f,i) => playTone(f, 0.2, 'sine', 0.28, i*0.1)); }
+function sfxDoubtFail()    { [320,260,200].forEach((f,i) => playTone(f, 0.24, 'sawtooth', 0.3, i*0.15)); }
+function sfxShowdown()     { playTone(880,0.07,'sine',0.22); playTone(660,0.07,'sine',0.22,0.09); playTone(784,0.25,'sine',0.22,0.18); }
+function sfxWin()  { [523,659,784,1047].forEach((f,i) => playTone(f, 0.32, 'sine', 0.35, i*0.14)); playTone(1047,0.6,'sine',0.28,0.6); }
+function sfxLose() { [380,320,250,180].forEach((f,i) => playTone(f, 0.3, 'sine', 0.28, i*0.15)); }
+
+function startBGM() {
+  if (bgmPlaying) return;
+  bgmPlaying = true;
+  const notes = [
+    [523,0.3],[494,0.15],[523,0.3],[587,0.15],[659,0.45],[0,0.15],
+    [659,0.15],[698,0.15],[659,0.15],[587,0.15],[523,0.45],[0,0.15],
+    [440,0.3],[494,0.15],[523,0.6],[0,0.3],
+  ];
+  function loop() {
+    if (!bgmPlaying) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    let t = ctx.currentTime + 0.05;
+    notes.forEach(([freq, dur]) => {
+      if (freq > 0) {
+        try {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.055, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.85);
+          osc.start(t); osc.stop(t + dur);
+        } catch(e) {}
+      }
+      t += dur;
+    });
+    const total = notes.reduce((s,[,d])=>s+d, 0);
+    bgmTimer = setTimeout(loop, (total - 0.15) * 1000);
+  }
+  loop();
+}
+
+function stopBGM() {
+  bgmPlaying = false;
+  if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+}
+
+function showConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  document.body.appendChild(canvas);
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const cx = canvas.getContext('2d');
+  const colors = ['#ffd700','#ff4444','#00ff88','#99ccff','#ff99cc','#ff9900','#cc44ff'];
+  const particles = Array.from({length:90}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * 80,
+    vx: (Math.random()-0.5) * 5,
+    vy: Math.random() * 3 + 2,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    w: Math.random() * 10 + 5,
+    h: Math.random() * 6 + 3,
+    rot: Math.random() * Math.PI * 2,
+    rv: (Math.random()-0.5) * 0.16,
+  }));
+  let frame = 0;
+  function animate() {
+    cx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.rv;
+      cx.save();
+      cx.globalAlpha = Math.max(0, 1 - frame / 110);
+      cx.translate(p.x, p.y); cx.rotate(p.rot);
+      cx.fillStyle = p.color;
+      cx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      cx.restore();
+    });
+    frame++;
+    if (frame < 130) requestAnimationFrame(animate);
+    else canvas.remove();
+  }
+  animate();
+}
+
+let _lastShowdownSoundMatch = -1;
+
+// card id: 0-23 = suit*6+rankIdx, 24-25 = jokers
+function cardSuit(id) { return Math.floor(id / 6); }
+function cardRankIdx(id) { return id % 6; }
+function cardRank(id) { return RANKS[cardRankIdx(id)]; }
+function cardRankVal(id) { return RANK_VALS[cardRank(id)]; }
+function isJoker(id) { return id >= 24; }
+
+function createDeck() {
+  const d = [];
+  for (let i = 0; i < 24; i++) d.push(i);
+  d.push(24); d.push(25);
+  return d;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// =====================================================
+// HAND EVALUATION
+// =====================================================
+function evaluateHand(cards) {
+  const jokerCount = cards.filter(isJoker).length;
+  const normals = cards.filter(c => !isJoker(c));
+
+  const rsf = tryRSF(normals, jokerCount);
+  if (rsf) return rsf;
+  const sf = trySF(normals, jokerCount);
+  if (sf) return sf;
+  const fok = tryFourOfAKind(normals, jokerCount);
+  if (fok) return fok;
+  const fh = tryFullHouse(normals, jokerCount);
+  if (fh) return fh;
+  const fl = tryFlush(normals, jokerCount);
+  if (fl) return fl;
+  const st = tryStraight(normals, jokerCount);
+  if (st) return st;
+  const tok = tryThreeOfAKind(normals, jokerCount);
+  if (tok) return tok;
+  const tp = tryTwoPair(normals, jokerCount);
+  if (tp) return tp;
+  const op = tryOnePair(normals, jokerCount);
+  if (op) return op;
+  // High card
+  const vals = normals.map(c => cardRankVal(c)).sort((a,b)=>b-a);
+  return { rank: 1, name: 'ハイカード', tb: vals };
+}
+
+const STRAIGHTS = [
+  [9,10,11,12,13],
+  [10,11,12,13,14]
+];
+
+function tryRSF(normals, jc) {
+  const target = [10,11,12,13,14];
+  for (let s = 0; s < 4; s++) {
+    const suitCards = normals.filter(c => cardSuit(c) === s);
+    const suitVals = suitCards.map(c => cardRankVal(c));
+    const outsiders = suitVals.filter(v => !target.includes(v));
+    const needed = target.filter(v => !suitVals.includes(v));
+    const hasDups = suitVals.some((v,i) => suitVals.indexOf(v) !== i);
+    const nonSuitNormals = normals.filter(c => cardSuit(c) !== s);
+    if (!hasDups && outsiders.length === 0 && needed.length <= jc) {
+      return { rank: 10, name: 'ロイヤルフラッシュ', tb: [14] };
+    }
+  }
+  const nVals = normals.map(c => cardRankVal(c));
+  const inTarget = nVals.filter(v => target.includes(v));
+  const outTarget = nVals.filter(v => !target.includes(v));
+  const hasDups = inTarget.some((v,i) => inTarget.indexOf(v) !== i);
+  if (outTarget.length === 0 && !hasDups && jc > 0) {
+    const needed = target.filter(v => !nVals.includes(v));
+    if (normals.length > 0) {
+      for (let s = 0; s < 4; s++) {
+        const notSuit = normals.filter(c => cardSuit(c) !== s);
+        if (notSuit.length + needed.length <= jc) {
+          return { rank: 10, name: 'ロイヤルフラッシュ', tb: [14] };
+        }
+      }
+    } else if (needed.length <= jc) {
+      return { rank: 10, name: 'ロイヤルフラッシュ', tb: [14] };
+    }
+  }
+  return null;
+}
+
+function trySF(normals, jc) {
+  for (const target of STRAIGHTS) {
+    for (let s = 0; s < 4; s++) {
+      const suitCards = normals.filter(c => cardSuit(c) === s);
+      const suitVals = suitCards.map(c => cardRankVal(c));
+      const needed = target.filter(v => !suitVals.includes(v));
+      const hasDups = suitVals.some((v,i) => suitVals.indexOf(v) !== i);
+      const outsiders = suitVals.filter(v => !target.includes(v));
+      if (!hasDups && needed.length <= jc && outsiders.length === 0) {
+        return { rank: 9, name: 'ストレートフラッシュ', tb: [Math.max(...target)] };
+      }
+    }
+  }
+  for (const target of STRAIGHTS) {
+    const nVals = normals.map(c => cardRankVal(c));
+    const inTarget = nVals.filter(v => target.includes(v));
+    const outTarget = nVals.filter(v => !target.includes(v));
+    const hasDups = inTarget.some((v,i) => inTarget.indexOf(v) !== i);
+    if (outTarget.length === 0 && !hasDups) {
+      const needed = target.filter(v => !nVals.includes(v));
+      if (needed.length <= jc && jc > 0) {
+        const suits = normals.map(c => cardSuit(c));
+        const suitCounts = [0,1,2,3].map(s => suits.filter(x=>x===s).length);
+        const maxSuit = Math.max(...suitCounts);
+        const bestSuit = suitCounts.indexOf(maxSuit);
+        const notBestSuit = normals.filter(c => cardSuit(c) !== bestSuit);
+        if (notBestSuit.length + needed.length <= jc) {
+          return { rank: 9, name: 'ストレートフラッシュ', tb: [Math.max(...target)] };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function tryFourOfAKind(normals, jc) {
+  const counts = getRankCounts(normals);
+  counts.sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  if (counts.length === 0) {
+    if (jc >= 4) return { rank:8, name:'フォーカード', tb:[14,14] };
+    return null;
+  }
+  const top = counts[0];
+  if (top[1] + jc >= 4) {
+    const kicker = counts[1] ? counts[1][0] : top[0];
+    return { rank:8, name:'フォーカード', tb:[top[0], kicker] };
+  }
+  return null;
+}
+
+function tryFullHouse(normals, jc) {
+  const counts = getRankCounts(normals);
+  if (counts.length === 0 && jc >= 5) return { rank:7, name:'フルハウス', tb:[14,13] };
+  counts.sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  if (counts.length === 0) return null;
+  const top = counts[0];
+  const topNeed = Math.max(0, 3 - top[1]);
+  const second = counts[1] || [top[0]-1, 0];
+  const candidates = counts.filter(c => c[0] !== top[0]);
+  if (candidates.length === 0 && counts.length === 1) {
+    const secondNeed = Math.max(0, 2 - 0);
+    if (topNeed + secondNeed <= jc) {
+      const secRank = top[0] === 14 ? 13 : 14;
+      return { rank:7, name:'フルハウス', tb:[top[0], secRank] };
+    }
+    return null;
+  }
+  if (candidates.length === 0) return null;
+  const sec = candidates[0];
+  const secNeed = Math.max(0, 2 - sec[1]);
+  if (topNeed + secNeed <= jc) {
+    return { rank:7, name:'フルハウス', tb:[top[0], sec[0]] };
+  }
+  if (counts.length >= 2) {
+    const alt1 = counts[0]; const alt2 = counts[1];
+    const n1 = Math.max(0, 3 - alt2[1]);
+    const n2 = Math.max(0, 2 - alt1[1]);
+    if (n1 + n2 <= jc && alt2[0] !== alt1[0]) {
+      const need_a = Math.max(0, 3-alt1[1]) + Math.max(0, 2-alt2[1]);
+      const need_b = Math.max(0, 3-alt2[1]) + Math.max(0, 2-alt1[1]);
+      if (need_a <= jc) return { rank:7, name:'フルハウス', tb:[alt1[0], alt2[0]] };
+      if (need_b <= jc) return { rank:7, name:'フルハウス', tb:[alt2[0], alt1[0]] };
+    }
+  }
+  return null;
+}
+
+function tryFlush(normals, jc) {
+  if (normals.length + jc < 5) return null;
+  if (jc === 5) return { rank:6, name:'フラッシュ', tb:[14,13,12,11,10] };
+  for (let s = 0; s < 4; s++) {
+    const suitCards = normals.filter(c => cardSuit(c) === s);
+    const otherCards = normals.filter(c => cardSuit(c) !== s);
+    if (otherCards.length <= jc) {
+      const vals = normals.map(c => cardRankVal(c)).sort((a,b)=>b-a);
+      return { rank:6, name:'フラッシュ', tb:vals };
+    }
+  }
+  return null;
+}
+
+function tryStraight(normals, jc) {
+  for (const target of STRAIGHTS) {
+    const nVals = normals.map(c => cardRankVal(c));
+    const inTarget = nVals.filter(v => target.includes(v));
+    const outTarget = nVals.filter(v => !target.includes(v));
+    const hasDups = inTarget.some((v,i) => inTarget.indexOf(v) !== i);
+    if (outTarget.length === 0 && !hasDups) {
+      const needed = target.filter(v => !nVals.includes(v));
+      if (needed.length <= jc) {
+        return { rank:5, name:'ストレート', tb:[Math.max(...target)] };
+      }
+    }
+  }
+  return null;
+}
+
+function tryThreeOfAKind(normals, jc) {
+  const counts = getRankCounts(normals);
+  counts.sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  if (counts.length === 0 && jc >= 3) return { rank:4, name:'スリーカード', tb:[14] };
+  if (counts.length === 0) return null;
+  const top = counts[0];
+  if (top[1] + jc >= 3) {
+    return { rank:4, name:'スリーカード', tb:[top[0]] };
+  }
+  return null;
+}
+
+function tryTwoPair(normals, jc) {
+  const counts = getRankCounts(normals);
+  counts.sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  const pairs = counts.filter(c => c[1] >= 2);
+  if (pairs.length >= 2) return { rank:3, name:'ツーペア', tb:[pairs[0][0], pairs[1][0]] };
+  if (pairs.length === 1 && jc >= 1) {
+    const nonPair = counts.filter(c => c[1] < 2);
+    const secRank = nonPair.length > 0 ? nonPair[0][0] : (pairs[0][0]===14?13:14);
+    return { rank:3, name:'ツーペア', tb:[pairs[0][0], secRank] };
+  }
+  if (pairs.length === 0 && jc >= 2 && counts.length >= 2) {
+    return { rank:3, name:'ツーペア', tb:[counts[0][0], counts[1][0]] };
+  }
+  if (pairs.length === 0 && jc >= 2 && counts.length === 1) {
+    const r = counts[0][0];
+    return { rank:3, name:'ツーペア', tb:[r, r===14?13:14] };
+  }
+  return null;
+}
+
+function tryOnePair(normals, jc) {
+  const counts = getRankCounts(normals);
+  counts.sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  if (counts.length === 0) {
+    if (jc >= 1) return { rank:2, name:'ワンペア', tb:[14] };
+    return null;
+  }
+  const top = counts[0];
+  if (top[1] >= 2 || jc >= 1) {
+    return { rank:2, name:'ワンペア', tb:[top[0]] };
+  }
+  return null;
+}
+
+function getRankCounts(normals) {
+  const map = {};
+  for (const c of normals) {
+    const v = cardRankVal(c);
+    map[v] = (map[v] || 0) + 1;
+  }
+  return Object.entries(map).map(([v,cnt]) => [parseInt(v), cnt]);
+}
+
+function compareHands(h1, h2) {
+  if (h1.rank !== h2.rank) return h1.rank > h2.rank ? 1 : -1;
+  for (let i = 0; i < Math.max(h1.tb.length, h2.tb.length); i++) {
+    const a = h1.tb[i] || 0;
+    const b = h2.tb[i] || 0;
+    if (a !== b) return a > b ? 1 : -1;
+  }
+  return 0;
+}
+
+// =====================================================
+// STATE ACCESSORS
+// =====================================================
+function pName(p) { return p===1 ? (G.p1Name||'プレイヤー1') : (G.p2Name||'プレイヤー2'); }
+function getSenkouP() { return G.senkou || 1; }
+function getKoukouP() { return G.senkou === 1 ? 2 : 1; }
+function pHand(p) { return p===1 ? G.p1Hand : G.p2Hand; }
+function setPHand(p,h) { if(p===1) G.p1Hand=h; else G.p2Hand=h; }
+function pDisc(p) { return p===1 ? G.p1Disc : G.p2Disc; }
+function setPDisc(p,d) { if(p===1) G.p1Disc=d; else G.p2Disc=d; }
+function pChips(p) { return p===1 ? G.p1Chips : G.p2Chips; }
+function setPChips(p,n) { if(p===1) G.p1Chips=n; else G.p2Chips=n; }
+function curP() { return [0,2].includes(G.turnIdx) ? 1 : 2; }
+function oppP() { return curP()===1 ? 2 : 1; }
+
+// =====================================================
+// MULTIPLAYER STATE
+// =====================================================
+let G = {};
+let myRole = null;       // 'p1' or 'p2'
+let roomId = null;
+let localPhase = 'lobby';
+let selSet = new Set();  // local only - not synced
+let selBetAmount = 1;    // ベッティングフェーズの選択チップ数
+let myPlayerName = '';   // プレイヤー名入力
+let sseGame = null;
+let p1WaitSSE = null;
+let p1PollInterval = null;
+let availableRooms = null;  // null=未ロード, []=ロード済み（空）
+let showRules = false;
+let lastDrawnCards = [];      // 直前の手札交換で引いたカード（ハイライト用）
+let lastDiscardedCards = [];  // 直前の手札交換で捨てたカード（ハイライト用）
+
+let isCpuMode = false;
+let cpuActionLog = ''; // CPUが行ったアクションのログ（opp-turn画面に表示）
+
+// =====================================================
+// ROOM MANAGEMENT
+// =====================================================
+function generateRoomId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+async function createRoom() {
+  try {
+    roomId = generateRoomId();
+    myRole = 'p1';
+    sessionStorage.setItem('bond_room', roomId);
+    sessionStorage.setItem('bond_role', 'p1');
+
+    await fbWrite(`/rooms/${roomId}`, { p1Ready: true, p2Ready: false, p1Name: myPlayerName || 'プレイヤー1', game: null });
+    setConnStatus(true);
+
+    // Poll for P2 joining every 1 second
+    p1PollInterval = setInterval(async () => {
+      try {
+        const room = await fbRead(`/rooms/${roomId}`);
+        if (room && room.p2Ready === true) {
+          clearInterval(p1PollInterval);
+          p1PollInterval = null;
+          initGameState();
+          G.p1Name = myPlayerName || 'プレイヤー1';
+          G.p2Name = room.p2Name || 'プレイヤー2';
+          startMatch();
+          await syncGame();
+          startGameSSE();
+          // P1自身のlocalPhaseを直接更新（SSEは自分の書き込みをスキップするため）
+          localPhase = 'my-turn';
+          selSet = new Set();
+          startBGM();
+          render();
+        }
+      } catch(e) {
+        console.error('[P1 poll error]', e);
+        showError('ポーリングエラー: ' + e.message);
+        clearInterval(p1PollInterval);
+        p1PollInterval = null;
+      }
+    }, 1000);
+
+    localPhase = 'waiting-host';
+    render();
+  } catch(e) {
+    showError('部屋の作成に失敗しました: ' + e.message);
+  }
+}
+
+async function joinRoom(id) {
+  try {
+    roomId = id.toUpperCase().trim();
+    if (!roomId || roomId.length < 4) { alert('部屋コードを入力してください'); return; }
+    myRole = 'p2';
+    sessionStorage.setItem('bond_room', roomId);
+    sessionStorage.setItem('bond_role', 'p2');
+
+    const room = await fbRead(`/rooms/${roomId}`);
+    if (!room || !room.p1Ready) {
+      alert('部屋が見つかりません: ' + roomId);
+      myRole = null; roomId = null;
+      sessionStorage.removeItem('bond_room');
+      sessionStorage.removeItem('bond_role');
+      return;
+    }
+    if (room.p2Ready) {
+      alert('この部屋は既に満員です');
+      myRole = null; roomId = null;
+      sessionStorage.removeItem('bond_room');
+      sessionStorage.removeItem('bond_role');
+      return;
+    }
+
+    await fbPatch(`/rooms/${roomId}`, { p2Ready: true, p2Name: myPlayerName || 'プレイヤー2' });
+    setConnStatus(true);
+
+    startGameSSE();
+    localPhase = 'waiting-guest';
+    render();
+  } catch(e) {
+    showError('入室に失敗しました: ' + e.message);
+  }
+}
+
+async function loadAvailableRooms() {
+  try {
+    const rooms = await fbRead('/rooms');
+    if (!rooms) { availableRooms = []; render(); return; }
+    availableRooms = Object.entries(rooms)
+      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready)
+      .map(([id, r]) => ({ id, p1Name: r.p1Name || 'プレイヤー1' }));
+    render();
+  } catch(e) {
+    availableRooms = [];
+    render();
+  }
+}
+
+function rulesHTML(inline = false) {
+  const cls = inline ? 'rules-inline' : 'rules-content';
+  return `<div class="${cls}">
+    <h3>ゲーム概要</h3>
+    <ul>
+      <li>2人対戦・各10枚チップ・4マッチ制</li>
+      <li>ポーカーの役で勝敗判定（ジョーカーはワイルド）</li>
+    </ul>
+    <h3>カード構成 (26枚)</h3>
+    <ul>
+      <li>9, 10, J, Q, K, A × ♠♥♦♣ = 24枚</li>
+      <li>ジョーカー × 2枚（ワイルド）</li>
+    </ul>
+    <h3>ターンの流れ (先攻→後攻→先攻→後攻)</h3>
+    <ol>
+      <li><strong>ロブ</strong>（任意・手札交換前のみ）: 相手の前ターン捨て札を奪い、同枚数を自分の手札から捨てる</li>
+      <li><strong>ダウト</strong>（任意・試合1回まで）: 相手のジョーカー枚数を宣言<br>
+        ・成功→相手のジョーカーを全て奪い、その枚数を手札から渡す<br>
+        ・失敗→持ちチップの1/3（切捨て）を場へ</li>
+      <li><strong>手札交換</strong>（任意）: 任意枚数捨てて同枚数引く（0枚=パス）</li>
+    </ol>
+    <h3>ベッティング（4ターン後）</h3>
+    <ul>
+      <li>先攻がベット枚数を宣言（オープン）</li>
+      <li>後攻はコール・レイズ・降りるを選択</li>
+    </ul>
+    <h3>勝敗・チップ</h3>
+    <ul>
+      <li>ゲーム開始時に各1枚場代</li>
+      <li>強い役のプレイヤーが場のチップを全獲得</li>
+      <li>引き分け→場のチップ持ち越し</li>
+    </ul>
+    <h3>役（弱→強）</h3>
+    <ul style="font-size:${inline?'11':'13'}px;">
+      <li>ハイカード → ワンペア → ツーペア → スリーカード</li>
+      <li>ストレート → フラッシュ → フルハウス</li>
+      <li>フォーカード → ストレートフラッシュ → ロイヤルフラッシュ</li>
+    </ul>
+  </div>`;
+}
+
+async function syncGame() {
+  if (isCpuMode) { render(); return; }
+  G._writer = myRole; // 自分が書いたことを記録
+  await fbWrite(`/rooms/${roomId}/game`, G);
+}
+
+function normalizeG(data) {
+  // Firebase may return arrays as objects {0:...,1:...}, convert them back
+  const arrFields = ['deck','p1Hand','p2Hand','p1Disc','p2Disc','pendingRob','p1LastDisc','p2LastDisc'];
+  for (const f of arrFields) {
+    if (data[f] && !Array.isArray(data[f])) {
+      data[f] = Object.values(data[f]);
+    } else if (!data[f]) {
+      data[f] = [];
+    }
+  }
+  return data;
+}
+
+function startGameSSE() {
+  sseGame = fbListen(`/rooms/${roomId}/game`, (data) => {
+    if (!data) return;
+    G = normalizeG(data);
+    setConnStatus(true);
+
+    // 自分が書いたデータが返ってきた場合はlocalPhaseを変えない（自分で既に設定済み）
+    if (G._writer === myRole) {
+      render();
+      return;
+    }
+
+    // 相手が書いたデータ → localPhaseを更新
+    if (G.phase === 'showdown') {
+      localPhase = 'showdown';
+    } else if (G.phase === 'game-over') {
+      localPhase = 'game-over';
+    } else if (G.phase === 'betting') {
+      const myP = myRole === 'p1' ? 1 : 2;
+      if (G.betActor === myP) {
+        localPhase = 'betting';
+        selBetAmount = G.betLevel > 0 ? G.betLevel + 1 : 1;
+      } else {
+        localPhase = 'bet-waiting';
+      }
+    } else if (G.phase === 'p1-action' && myRole === 'p1') {
+      if (G.turnIdx === 0) { sfxDeal(); startBGM(); }
+      localPhase = 'my-turn';
+      selSet = new Set();
+    } else if (G.phase === 'p2-action' && myRole === 'p2') {
+      if (G.turnIdx === 0 || G.turnIdx === 1) { sfxDeal(); startBGM(); }
+      localPhase = 'my-turn';
+      selSet = new Set();
+    } else {
+      localPhase = 'opp-turn';
+    }
+    render();
+  });
+}
+
+function initGameState() {
+  G = {
+    phase: 'p1-action',
+    p1Chips: 10, p2Chips: 10, pot: 0,
+    deck: [], p1Hand: [], p2Hand: [], p1Disc: [], p2Disc: [],
+    turnIdx: 0, totalMatches: 0,
+    robDone: false, doubtDone: false, drawDone: false,
+    doubtUsed: false,
+    p1LastDisc: [], p2LastDisc: [],
+    pendingRob: [], doubtResult: null, showdownData: null,
+    senkou: 2,          // 先攻プレイヤー（startMatchで交互に切り替え、初回→1）
+    p1Name: myPlayerName || 'プレイヤー1',
+    p2Name: '',         // P2入室時に上書き
+    betActor: 0,        // ベット中に行動するプレイヤー番号
+    betLevel: 0,        // 現在のベットレベル（コールに必要な枚数）
+    senkouBetTotal: 0,  // 先攻の追加ベット合計
+    koukouBetTotal: 0   // 後攻の追加ベット合計
+  };
+}
+
+// =====================================================
+// GAME LOGIC
+// =====================================================
+function startMatch() {
+  G.p1Chips--;
+  G.p2Chips--;
+  G.pot += 2;
+  G.deck = shuffle(createDeck());
+  G.p1Hand = [];
+  G.p2Hand = [];
+  G.p1Disc = [];
+  G.p2Disc = [];
+  G.p1LastDisc = [];
+  G.p2LastDisc = [];
+  for (let i = 0; i < 5; i++) {
+    G.p1Hand.push(G.deck.pop());
+    G.p2Hand.push(G.deck.pop());
+  }
+  G.turnIdx = 0;
+  G.robDone = false;
+  G.doubtDone = false;
+  G.drawDone = false;
+  G.doubtUsed = false;
+  G.pendingRob = [];
+  G.doubtResult = null;
+  G.showdownData = null;
+  lastDrawnCards = [];
+  lastDiscardedCards = [];
+  // 先攻後攻を交代（初回: 1→P1先攻、次: 2→P2先攻）
+  G.senkou = G.senkou === 1 ? 2 : 1;
+  G.betActor = 0;
+  G.betLevel = 0;
+  G.senkouBetTotal = 0;
+  G.koukouBetTotal = 0;
+  G.phase = G.senkou === 1 ? 'p1-action' : 'p2-action';
+  sfxDeal();
+  // syncGame() called by caller
+}
+
+async function endTurn() {
+  // 現在のphaseから行動プレイヤーを特定（先攻後攻に依存しない）
+  const finishedP = G.phase === 'p1-action' ? 1 : 2;
+  // 手札交換しなかった場合、このターンの捨て札は0枚（ロブ不可）
+  if (!G.drawDone) {
+    if (finishedP === 1) G.p1LastDisc = [];
+    else G.p2LastDisc = [];
+  }
+
+  G.turnIdx++;
+  G.robDone = false;
+  G.doubtDone = false;
+  G.drawDone = false;
+  G.pendingRob = [];
+  G.doubtResult = null;
+  selSet = new Set();
+  lastDrawnCards = [];
+  lastDiscardedCards = [];
+
+  if (G.turnIdx >= 4) {
+    goToBetting();
+  } else {
+    // 先攻: turnIdx 0,2 / 後攻: turnIdx 1,3
+    const senkouPhase = G.senkou === 1 ? 'p1-action' : 'p2-action';
+    const koukouPhase = G.senkou === 1 ? 'p2-action' : 'p1-action';
+    G.phase = [senkouPhase, koukouPhase, senkouPhase, koukouPhase][G.turnIdx];
+  }
+
+  if (G.phase === 'betting') {
+    const myP = myRole === 'p1' ? 1 : 2;
+    localPhase = G.betActor === myP ? 'betting' : 'bet-waiting';
+    selBetAmount = 1;
+    if (isCpuMode && G.betActor === 2) {
+      setTimeout(cpuDoBetting, 1000);
+    }
+  } else if (isCpuMode) {
+    if (G.phase === 'p1-action') {
+      localPhase = 'my-turn';
+      selSet = new Set();
+    } else {
+      localPhase = 'opp-turn';
+      setTimeout(cpuTakeTurn, 1000);
+    }
+  } else {
+    localPhase = 'opp-turn';
+  }
+  await syncGame();
+}
+
+function goToBetting() {
+  // 全ターン終了後、ショーダウン前のベッティングフェーズ
+  G.phase = 'betting';
+  G.betActor = getSenkouP(); // 先攻がオープン
+  G.betLevel = 0;
+  G.senkouBetTotal = 0;
+  G.koukouBetTotal = 0;
+}
+
+async function submitBet(action, amount) {
+  // action: 'bet'(オープン/レイズ), 'call', 'fold'
+  sfxClick();
+  const senkouP = getSenkouP();
+  const koukouP = getKoukouP();
+
+  if (action === 'fold') {
+    // 降り: 相手がポット獲得。追加ベットは発生しない。
+    const other = G.betActor === 1 ? 2 : 1;
+    const potBefore = G.pot;
+    if (other === 1) G.p1Chips += G.pot; else G.p2Chips += G.pot;
+    G.pot = 0;
+    G.totalMatches++;
+    G.showdownData = { winner: other, h1: null, h2: null, potBefore, folded: G.betActor };
+    G.phase = 'showdown';
+    localPhase = 'showdown';
+
+  } else if (action === 'bet') {
+    // オープンまたはレイズ: 自分のトータルを amount に設定し相手に回す
+    if (G.betActor === senkouP) G.senkouBetTotal = amount;
+    else G.koukouBetTotal = amount;
+    G.betLevel = amount;
+    G.betActor = G.betActor === 1 ? 2 : 1; // 相手へ
+    if (isCpuMode) {
+      if (G.betActor === 2) {
+        localPhase = 'bet-waiting';
+        setTimeout(cpuDoBetting, 1000);
+      } else {
+        localPhase = 'betting';
+        selBetAmount = G.betLevel + 1;
+      }
+    } else {
+      localPhase = 'bet-waiting';
+    }
+
+  } else if (action === 'call') {
+    // コール: betLevel に合わせてチップを追加し、ショーダウンへ
+    if (G.betActor === senkouP) G.senkouBetTotal = G.betLevel;
+    else G.koukouBetTotal = G.betLevel;
+    // チップ減算（先攻/後攻をP1/P2に対応付け）
+    if (senkouP === 1) {
+      G.p1Chips -= G.senkouBetTotal;
+      G.p2Chips -= G.koukouBetTotal;
+    } else {
+      G.p2Chips -= G.senkouBetTotal;
+      G.p1Chips -= G.koukouBetTotal;
+    }
+    G.pot += G.senkouBetTotal + G.koukouBetTotal;
+    goToShowdown();
+    localPhase = 'showdown';
+  }
+
+  await syncGame();
+  render();
+}
+
+function goToShowdown() {
+  const h1 = evaluateHand(G.p1Hand);
+  const h2 = evaluateHand(G.p2Hand);
+  const result = compareHands(h1, h2);
+  let winner = 0;
+  if (result === 1) winner = 1;
+  else if (result === -1) winner = 2;
+
+  const potBefore = G.pot;
+  if (winner === 1) { G.p1Chips += G.pot; G.pot = 0; }
+  else if (winner === 2) { G.p2Chips += G.pot; G.pot = 0; }
+
+  G.totalMatches++;
+  G.showdownData = { h1, h2, winner, potBefore };
+  G.phase = 'showdown';
+}
+
+function checkGameOver() {
+  return G.p1Chips === 0 || G.p2Chips === 0 || G.totalMatches >= 4;
+}
+
+async function nextMatch() {
+  if (checkGameOver()) {
+    G.phase = 'game-over';
+    await syncGame();
+    localPhase = 'game-over';
+  } else {
+    startMatch();
+    await syncGame();
+    selSet = new Set();
+    if (isCpuMode) {
+      if (G.phase === 'p1-action') {
+        localPhase = 'my-turn';
+      } else {
+        localPhase = 'opp-turn';
+        setTimeout(cpuTakeTurn, 1200);
+      }
+    } else {
+      // 自分が先攻なら'my-turn'、後攻なら'opp-turn'（SSEは自分の書き込みをスキップするため直接設定）
+      const myPhase = myRole === 'p1' ? 'p1-action' : 'p2-action';
+      localPhase = G.phase === myPhase ? 'my-turn' : 'opp-turn';
+    }
+  }
+  render();
+}
+
+// =====================================================
+// ACTIONS (all async, sync to firebase)
+// =====================================================
+async function doRob() {
+  // ロブ: 相手の前ターン捨て札を全て奪い、自分の手札から同枚数を捨てる
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const oppLastDisc = oppP_num === 1 ? G.p1LastDisc : G.p2LastDisc;
+  if (!oppLastDisc || oppLastDisc.length === 0) return;
+  sfxRob();
+  G.pendingRob = [...oppLastDisc];
+  // 相手の捨て札から前ターン分を除去
+  const oDisc = pDisc(oppP_num);
+  const oppLastSet = new Set(oppLastDisc);
+  setPDisc(oppP_num, oDisc.filter(c => !oppLastSet.has(c)));
+  if (oppP_num === 1) G.p1LastDisc = [];
+  else G.p2LastDisc = [];
+  selSet = new Set();
+  localPhase = 'rob-self';
+  render();
+}
+
+async function confirmRobSelf() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const need = G.pendingRob.length;
+  if (selSet.size !== need) return;
+  const myHand = pHand(myP);
+  const newHand = myHand.filter(c => !selSet.has(c));
+  newHand.push(...G.pendingRob);
+  const myDisc = pDisc(myP);
+  const newDisc = [...myDisc, ...[...selSet]];
+  setPHand(myP, newHand);
+  setPDisc(myP, newDisc);
+  G.pendingRob = [];
+  selSet = new Set();
+  G.robDone = true;
+  localPhase = 'my-turn';
+  await syncGame();
+  render();
+}
+
+async function confirmDoubt(n) {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const oppHand = pHand(oppP_num);
+  const oppHandSnapshot = [...oppHand];
+  const actualJokers = oppHand.filter(isJoker);
+  const success = actualJokers.length === n;
+
+  G.doubtResult = { declared: n, actual: actualJokers.length, success, oppHandSnapshot };
+
+  if (success && actualJokers.length > 0) {
+    const newOppHand = oppHand.filter(c => !isJoker(c));
+    setPHand(oppP_num, newOppHand);
+    const myHand = pHand(myP);
+    myHand.push(...actualJokers);
+    setPHand(myP, myHand);
+    G.doubtResult.stolenn = actualJokers.length;
+  } else if (success && actualJokers.length === 0) {
+    G.doubtResult.stolenn = 0;
+  } else {
+    const penalty = Math.floor(pChips(myP) / 3);
+    setPChips(myP, pChips(myP) - penalty);
+    G.pot += penalty;
+    G.doubtResult.penalty = penalty;
+  }
+
+  if (success) sfxDoubtSuccess(); else sfxDoubtFail();
+  G.doubtDone = true;
+  G.doubtUsed = true; // 試合中はもうダウト不可
+  localPhase = 'doubt-resolve';
+  await syncGame();
+  render();
+}
+
+function proceedDoubtResolve() {
+  if (G.doubtResult && G.doubtResult.success && G.doubtResult.stolenn > 0) {
+    selSet = new Set();
+    localPhase = 'doubt-give';
+  } else {
+    localPhase = 'my-turn';
+  }
+  render();
+}
+
+async function confirmDoubtGive() {
+  const need = G.doubtResult.stolenn;
+  if (selSet.size !== need) return;
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const myHand = pHand(myP);
+  const toGive = [...selSet];
+  const newMyHand = myHand.filter(c => !selSet.has(c));
+  const newOppHand = [...pHand(oppP_num), ...toGive];
+  setPHand(myP, newMyHand);
+  setPHand(oppP_num, newOppHand);
+  selSet = new Set();
+  localPhase = 'my-turn';
+  await syncGame();
+  render();
+}
+
+async function confirmDraw() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const discardIds = [...selSet];
+  const myHand = pHand(myP);
+  const myDisc = pDisc(myP);
+  const drawCount = discardIds.length;
+
+  const newHand = myHand.filter(c => !selSet.has(c));
+  const newDisc = [...myDisc, ...discardIds];
+  setPDisc(myP, newDisc);
+  // 今ターンの捨て札を記録（ロブ用）
+  if (myP === 1) G.p1LastDisc = discardIds;
+  else G.p2LastDisc = discardIds;
+
+  let drawn = [];
+  for (let i = 0; i < drawCount; i++) {
+    if (G.deck.length === 0) {
+      const justDiscarded = new Set(discardIds);
+      const reshufflePool = newDisc.filter(c => !justDiscarded.has(c));
+      G.deck = shuffle(reshufflePool);
+      const remainDisc = newDisc.filter(c => justDiscarded.has(c));
+      setPDisc(myP, remainDisc);
+    }
+    if (G.deck.length > 0) {
+      drawn.push(G.deck.pop());
+    }
+  }
+
+  newHand.push(...drawn);
+  setPHand(myP, newHand);
+  lastDrawnCards = drawn;
+  lastDiscardedCards = discardIds;
+  selSet = new Set();
+  G.drawDone = true;
+  sfxDrawCards();
+  localPhase = 'my-turn';
+  await syncGame();
+  render();
+}
+
+// =====================================================
+// CPU MODE
+// =====================================================
+function startCpuGame() {
+  isCpuMode = true;
+  myRole = 'p1';
+  roomId = 'cpu';
+  initGameState();
+  G.p1Name = myPlayerName || 'あなた';
+  G.p2Name = 'CPU';
+  startMatch();
+  selSet = new Set();
+  if (G.phase === 'p1-action') {
+    localPhase = 'my-turn';
+  } else {
+    localPhase = 'opp-turn';
+    setTimeout(cpuTakeTurn, 1200);
+  }
+  startBGM();
+  render();
+}
+
+function cpuChooseDiscard() {
+  const hand = [...G.p2Hand];
+  const currentEval = evaluateHand(hand);
+  if (currentEval.rank >= 6) return [];
+
+  const jokers = hand.filter(isJoker);
+  const normals = hand.filter(c => !isJoker(c));
+
+  const rankMap = {};
+  normals.forEach(c => {
+    const v = cardRankVal(c);
+    (rankMap[v] = rankMap[v] || []).push(c);
+  });
+  const byRank = Object.values(rankMap).sort((a, b) =>
+    b.length - a.length || cardRankVal(b[0]) - cardRankVal(a[0])
+  );
+
+  const suitMap = {};
+  normals.forEach(c => {
+    const s = cardSuit(c);
+    (suitMap[s] = suitMap[s] || []).push(c);
+  });
+  const bySuit = Object.values(suitMap).sort((a, b) => b.length - a.length);
+
+  const keepSet = new Set(jokers);
+
+  // Flush draw (4+ same suit)
+  if (bySuit.length > 0 && bySuit[0].length >= 4) {
+    bySuit[0].forEach(c => keepSet.add(c));
+    return hand.filter(c => !keepSet.has(c));
+  }
+
+  // Keep pairs/triples (highest first)
+  for (const group of byRank) {
+    if (group.length >= 2) group.forEach(c => keepSet.add(c));
+  }
+
+  // If nothing kept yet, keep top 3 cards
+  if (keepSet.size === jokers.length) {
+    const sorted = [...normals].sort((a, b) => cardRankVal(b) - cardRankVal(a));
+    sorted.slice(0, 3).forEach(c => keepSet.add(c));
+  }
+
+  return hand.filter(c => !keepSet.has(c));
+}
+
+function cpuShouldRob() {
+  const playerLastDisc = G.p1LastDisc || [];
+  if (playerLastDisc.length === 0) return false;
+  const n = playerLastDisc.length;
+  const cpuHand = [...G.p2Hand];
+  const sorted = [...cpuHand].sort((a, b) => {
+    const va = isJoker(a) ? 20 : cardRankVal(a);
+    const vb = isJoker(b) ? 20 : cardRankVal(b);
+    return va - vb;
+  });
+  const worstN = sorted.slice(0, n);
+  const newHand = cpuHand.filter(c => !worstN.includes(c));
+  newHand.push(...playerLastDisc);
+  const currentEval = evaluateHand(cpuHand);
+  const newEval = evaluateHand(newHand);
+  return newEval.rank > currentEval.rank || playerLastDisc.some(isJoker);
+}
+
+function cpuExecuteRob() {
+  const playerLastDisc = [...(G.p1LastDisc || [])];
+  if (playerLastDisc.length === 0) return;
+  const n = playerLastDisc.length;
+  const cpuHand = [...G.p2Hand];
+  const sorted = [...cpuHand].sort((a, b) => {
+    const va = isJoker(a) ? 20 : cardRankVal(a);
+    const vb = isJoker(b) ? 20 : cardRankVal(b);
+    return va - vb;
+  });
+  const toDiscard = sorted.slice(0, n);
+  const discardSet = new Set(toDiscard.map(String));
+  const playerLastSet = new Set(playerLastDisc.map(String));
+  G.p1Disc = G.p1Disc.filter(c => !playerLastSet.has(String(c)));
+  G.p1LastDisc = [];
+  G.p2Hand = [...cpuHand.filter(c => !discardSet.has(String(c))), ...playerLastDisc];
+  G.p2Disc = [...G.p2Disc, ...toDiscard];
+  G.robDone = true;
+  cpuActionLog = `CPUがロブ！ あなたの捨て札 ${playerLastDisc.length}枚を奪いました`;
+  sfxRob();
+}
+
+function cpuDoubtDecision() {
+  const myJokers = G.p2Hand.filter(isJoker).length;
+  if (myJokers === 2) {
+    return Math.random() < 0.75 ? 0 : -1;
+  } else if (myJokers === 1) {
+    if (Math.random() < 0.3) return Math.random() < 0.6 ? 0 : 1;
+  } else {
+    if (Math.random() < 0.2) return Math.floor(Math.random() * 3);
+  }
+  return -1;
+}
+
+function cpuExecuteDoubt(n) {
+  const p1Hand = [...G.p1Hand];
+  const actualJokers = p1Hand.filter(isJoker);
+  const success = actualJokers.length === n;
+  if (success) {
+    sfxDoubtSuccess();
+    if (actualJokers.length > 0) {
+      G.p1Hand = p1Hand.filter(c => !isJoker(c));
+      const cpuHandWithJokers = [...G.p2Hand, ...actualJokers];
+      const nonJokerCpu = cpuHandWithJokers.filter(c => !isJoker(c))
+        .sort((a, b) => cardRankVal(a) - cardRankVal(b));
+      const toGive = nonJokerCpu.slice(0, actualJokers.length);
+      const toGiveSet = new Set(toGive.map(String));
+      G.p2Hand = cpuHandWithJokers.filter(c => !toGiveSet.has(String(c)));
+      G.p1Hand = [...G.p1Hand, ...toGive];
+      cpuActionLog = `CPUのダウト成功！（${n}枚宣言）あなたのジョーカー${actualJokers.length}枚を奪われました`;
+    } else {
+      cpuActionLog = `CPUのダウト成功（${n}枚宣言）。ジョーカーなし、効果なし`;
+    }
+  } else {
+    sfxDoubtFail();
+    const penalty = Math.floor(pChips(2) / 3);
+    setPChips(2, pChips(2) - penalty);
+    G.pot += penalty;
+    cpuActionLog = `CPUのダウト失敗！（${n}枚宣言→実際${actualJokers.length}枚）CPU${penalty}枚ペナルティ`;
+  }
+  G.doubtDone = true;
+  G.doubtUsed = true;
+}
+
+function cpuExecuteDraw() {
+  const toDiscard = cpuChooseDiscard();
+  G.p2LastDisc = toDiscard;
+  const discardSet = new Set(toDiscard.map(String));
+  const newHand = G.p2Hand.filter(c => !discardSet.has(String(c)));
+  G.p2Disc = [...G.p2Disc, ...toDiscard];
+  const drawn = [];
+  for (let i = 0; i < toDiscard.length; i++) {
+    if (G.deck.length === 0) {
+      const justDiscarded = new Set(toDiscard.map(String));
+      const reshufflePool = G.p2Disc.filter(c => !justDiscarded.has(String(c)));
+      G.deck = shuffle(reshufflePool);
+      G.p2Disc = G.p2Disc.filter(c => justDiscarded.has(String(c)));
+    }
+    if (G.deck.length > 0) drawn.push(G.deck.pop());
+  }
+  G.p2Hand = [...newHand, ...drawn];
+  G.drawDone = true;
+  if (toDiscard.length > 0) sfxDrawCards();
+}
+
+async function cpuTakeTurn() {
+  if (!isCpuMode) return;
+  cpuActionLog = '';
+  await new Promise(r => setTimeout(r, 400));
+
+  // 1. Rob
+  if (!G.robDone && (G.p1LastDisc || []).length > 0 && cpuShouldRob()) {
+    cpuExecuteRob();
+    render();
+    await new Promise(r => setTimeout(r, 350));
+  }
+
+  // 2. Doubt
+  if (!G.doubtDone && !G.doubtUsed) {
+    const n = cpuDoubtDecision();
+    if (n >= 0) {
+      cpuExecuteDoubt(n);
+      render();
+      await new Promise(r => setTimeout(r, 450));
+    }
+  }
+
+  // 3. Draw
+  cpuExecuteDraw();
+  render();
+  await new Promise(r => setTimeout(r, 350));
+
+  // 4. End turn
+  await endTurn();
+  render();
+}
+
+async function cpuDoBetting() {
+  if (!isCpuMode || G.betActor !== 2) return;
+  const cpuEval = evaluateHand(G.p2Hand);
+  const rank = cpuEval.rank;
+  const cpuChips = pChips(2);
+  const isOpening = G.betLevel === 0;
+
+  if (cpuChips <= 0 || (!isOpening && cpuChips < G.betLevel)) {
+    await submitBet('fold');
+    return;
+  }
+
+  const minBet = isOpening ? 1 : G.betLevel + 1;
+  const maxBet = cpuChips;
+
+  if (isOpening) {
+    let betAmt = 1;
+    if (rank >= 7) betAmt = Math.min(Math.max(3, Math.floor(cpuChips * 0.5)), maxBet);
+    else if (rank >= 5) betAmt = Math.min(3, maxBet);
+    else if (rank >= 3) betAmt = Math.min(2, maxBet);
+    await submitBet('bet', betAmt);
+  } else {
+    if (rank <= 2) {
+      await submitBet('fold');
+    } else if (rank >= 7 && maxBet >= minBet && Math.random() < 0.5) {
+      await submitBet('bet', Math.min(G.betLevel + 1, maxBet));
+    } else {
+      await submitBet('call');
+    }
+  }
+}
+
+// =====================================================
+// CARD HTML
+// =====================================================
+function cardHTML(cardId, opts = {}) {
+  const { facedown=false, clickable=false, selected=false, highlight=false } = opts;
+  let classes = 'card';
+  if (facedown) { classes += ' facedown'; return `<div class="${classes}" data-id="${cardId}"></div>`; }
+  if (isJoker(cardId)) {
+    classes += ' joker';
+    if (clickable) classes += ' clickable';
+    if (selected) classes += ' selected';
+    if (highlight) classes += ' highlight-win';
+    return `<div class="${classes}" data-id="${cardId}">🃏<span class="joker-label">JOKER</span></div>`;
+  }
+  const suit = SUITS[cardSuit(cardId)];
+  const rank = cardRank(cardId);
+  const isRed = cardSuit(cardId) === 1 || cardSuit(cardId) === 2;
+  classes += isRed ? ' red' : ' black';
+  if (clickable) classes += ' clickable';
+  if (selected) classes += ' selected';
+  if (highlight) classes += ' highlight-win';
+  return `<div class="${classes}" data-id="${cardId}">
+    <span class="rank">${rank}</span>
+    <span class="suit">${suit}</span>
+    <span class="rank-bot">${rank}</span>
+  </div>`;
+}
+
+function cardsRowHTML(cards, opts = {}) {
+  const dealClass = opts.deal ? ' card-deal' : '';
+  return `<div class="card-row">${cards.map(c => {
+    const html = cardHTML(c, opts);
+    return dealClass ? html.replace('class="card', `class="card${dealClass}`) : html;
+  }).join('')}</div>`;
+}
+
+function topbarHTML() {
+  const myLabel = myRole === 'p1' ? '<span class="role-badge p1">P1</span>' : '<span class="role-badge p2">P2</span>';
+  return `<div class="topbar">
+    <span class="chip-p1">${pName(1)}${G.senkou===1?'★':''}: ${G.p1Chips}枚</span>
+    <span class="chip-pot">場: ${G.pot}枚 ${myLabel}</span>
+    <span class="chip-p2">${pName(2)}${G.senkou===2?'★':''}: ${G.p2Chips}枚</span>
+  </div>
+  ${showRules ? `<div class="rules-overlay"><div class="rules-header"><h2>ルール</h2><button class="rules-btn" data-action="toggle-rules">✕ 閉じる</button></div>${rulesHTML(false)}</div>` : ''}`;
+}
+
+function turnIndicatorHTML(extra) {
+  const t = Math.floor(G.turnIdx / 2) + 1;
+  return `<div class="turn-indicator" style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;">
+    <span>ターン${t} / 試合${G.totalMatches+1}${extra ? ' — ' + extra : ''}</span>
+    <button class="rules-btn" data-action="toggle-rules">ルール</button>
+  </div>`;
+}
+
+// =====================================================
+// RENDER
+// =====================================================
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  if (errorMsg) {
+    html += `<div class="error-banner">${errorMsg} <button onclick="errorMsg=null;render()" style="margin-left:8px;background:transparent;border:1px solid #fff;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;">×</button></div>`;
+  }
+
+  switch(localPhase) {
+    case 'lobby':         html += renderLobby(); break;
+    case 'waiting-host':  html += renderWaitingHost(); break;
+    case 'waiting-guest': html += renderWaitingGuest(); break;
+    case 'my-turn':       html += renderMyTurn(); break;
+    case 'opp-turn':      html += renderOppTurn(); break;
+    case 'betting':       html += renderBetting(); break;
+    case 'bet-waiting':   html += renderBetWaiting(); break;
+    case 'rob-enemy':     html += renderRobEnemy(); break;
+    case 'rob-self':      html += renderRobSelf(); break;
+    case 'doubt-declare': html += renderDoubtDeclare(); break;
+    case 'doubt-resolve': html += renderDoubtResolve(); break;
+    case 'doubt-give':    html += renderDoubtGive(); break;
+    case 'draw':          html += renderDraw(); break;
+    case 'showdown':      html += renderShowdown(); break;
+    case 'game-over':     html += renderGameOver(); break;
+    default:              html += '<p style="padding:20px;">不明な状態</p>';
+  }
+
+  app.innerHTML = html;
+  attachEvents();
+}
+
+function renderLobby() {
+  const firebaseNotSet = FIREBASE_DB_URL.includes('YOUR-PROJECT');
+  const warnHtml = firebaseNotSet ? `<div class="firebase-warn">
+    <strong>⚠ Firebase未設定</strong><br>
+    このファイルの先頭にある <code>FIREBASE_DB_URL</code> を<br>
+    実際のFirebase Realtime Database URLに書き換えてください。<br>
+    <small>例: https://myapp-default-rtdb.firebaseio.com</small>
+  </div>` : '';
+
+  // Reconnect suggestion
+  const savedRoom = sessionStorage.getItem('bond_room');
+  const savedRole = sessionStorage.getItem('bond_role');
+  const reconnectHtml = savedRoom ? `<div class="reconnect-box">
+    <h3>前回のセッション</h3>
+    <p>部屋コード: <strong>${savedRoom}</strong> (${savedRole === 'p1' ? 'ホスト' : 'ゲスト'})</p>
+    <div class="btn-row" style="padding:0;">
+      <button class="btn btn-info" data-action="reconnect">再接続</button>
+      <button class="btn btn-gray" data-action="clear-session">クリア</button>
+    </div>
+  </div>` : '';
+
+  // Room list section
+  let roomListHtml = '';
+  if (!firebaseNotSet) {
+    if (availableRooms === null) {
+      roomListHtml = `<div class="room-empty"><span class="spinner" style="width:14px;height:14px;"></span> 部屋を検索中...</div>`;
+    } else if (availableRooms.length === 0) {
+      roomListHtml = `<div class="room-empty">空きルームなし</div>`;
+    } else {
+      roomListHtml = availableRooms.map(r => `
+        <div class="room-item">
+          <span style="font-size:13px;">${r.p1Name} の部屋</span>
+          <button class="btn btn-info" style="padding:6px 14px;font-size:13px;" data-action="join-room-id" data-room="${r.id}">入室</button>
+        </div>`).join('');
+    }
+    roomListHtml = `
+      <div style="width:100%;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:#aaa;">参加できる部屋</span>
+        <button class="rules-btn" data-action="refresh-rooms">更新</button>
+      </div>
+      <div class="room-list">${roomListHtml}</div>`;
+  }
+
+  return `<div class="title-screen">
+    <h1>ボンド</h1>
+    <div class="subtitle">2人対戦カードゲーム</div>
+    <input type="text" id="name-input" value="${myPlayerName}"
+      placeholder="あなたの名前（省略可）" maxlength="12"
+      style="width:100%;padding:10px 12px;border-radius:8px;border:2px solid #444;background:#0a2a18;color:#fff;font-size:16px;font-family:inherit;margin-bottom:14px;box-sizing:border-box;">
+    <button class="btn btn-primary btn-big" data-action="create-room" ${firebaseNotSet ? 'disabled' : ''}>部屋を作る</button>
+    <button class="btn btn-big" style="background:#5a2d82;color:#fff;margin-bottom:10px;" data-action="start-cpu">CPUと対戦</button>
+    ${roomListHtml}
+    ${reconnectHtml}
+    ${warnHtml}
+    <div style="margin-top:6px;width:100%;display:flex;justify-content:flex-end;">
+      <button class="rules-btn" data-action="toggle-rules">ルールを見る ▼</button>
+    </div>
+    ${showRules ? rulesHTML(true) : ''}
+  </div>`;
+}
+
+function renderWaitingHost() {
+  return `<div class="waiting-screen">
+    <h2 style="color:#ffd700;margin-bottom:20px;">部屋を作成しました</h2>
+    <div class="waiting-msg"><span class="spinner"></span>相手の入室を待っています...</div>
+    <p style="font-size:12px;color:#666;margin-top:16px;">相手が入室するとゲームが自動的に始まります</p>
+  </div>`;
+}
+
+function renderWaitingGuest() {
+  return `<div class="waiting-screen">
+    <h2 style="color:#99ccff;margin-bottom:16px;">接続しました</h2>
+    <p style="color:#aaa;font-size:14px;margin-bottom:20px;">部屋コード: <strong style="color:#ffd700;">${roomId}</strong></p>
+    <div class="waiting-msg"><span class="spinner"></span>ゲーム開始を待っています...</div>
+  </div>`;
+}
+
+function renderMyTurn() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const myHand = pHand(myP);
+  const myDisc = pDisc(myP);
+  const oppHand = pHand(oppP_num);
+  const oppDisc = pDisc(oppP_num);
+
+  const oppLastDisc = oppP_num === 1 ? (G.p1LastDisc||[]) : (G.p2LastDisc||[]);
+  const hasOppLastDisc = oppLastDisc.length > 0;
+
+  const robDisabled = !hasOppLastDisc || G.drawDone;
+  const robBtn = G.robDone
+    ? `<button class="btn btn-done" disabled>ロブ済</button>`
+    : `<button class="btn btn-warn${robDisabled ? ' btn-gray' : ''}" data-action="do-rob" ${robDisabled ? 'disabled' : ''}>ロブ</button>`;
+  const doubtDisabled = G.doubtDone || G.doubtUsed;
+  const doubtBtn = doubtDisabled
+    ? `<button class="btn btn-done" disabled>${G.doubtUsed ? 'ダウト不可' : 'ダウト済'}</button>`
+    : `<button class="btn btn-danger" data-action="do-doubt">ダウト</button>`;
+  const drawBtn = G.drawDone
+    ? `<button class="btn btn-done" disabled>交換済</button>`
+    : `<button class="btn btn-info" data-action="do-draw">手札交換</button>`;
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML('あなたのターン')}
+    <div class="section-opp">
+      <div class="section-title">${isCpuMode ? 'CPU' : `相手 (プレイヤー${oppP_num})`}</div>
+      <div class="section-label">手札 (${oppHand.length}枚)</div>
+      ${cardsRowHTML(oppHand, { facedown: true })}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      ${cardsRowHTML(oppDisc)}
+    </div>
+    <div class="middle-area deck-info">デッキ: ${G.deck.length}枚</div>
+    <div class="section-self">
+      <div class="section-title">あなた (プレイヤー${myP})</div>
+      <div class="section-label">手札 (${myHand.length}枚)</div>
+      <div class="card-row">${myHand.map(c => {
+        const isNew = lastDrawnCards.includes(c);
+        let html = cardHTML(c, { deal: !isNew });
+        if (isNew) html = html.replace('class="card', 'class="card new-draw card-deal');
+        return html;
+      }).join('')}</div>
+      ${lastDrawnCards.length > 0 ? `<div style="font-size:11px;color:#00ccff;padding:2px 4px;">↑ 今引いたカード (${lastDrawnCards.length}枚)</div>` : ''}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      <div class="card-row">${myDisc.map(c => {
+        const isJustDisc = lastDiscardedCards.includes(c);
+        let html = cardHTML(c, {});
+        if (isJustDisc) html = html.replace('class="card', 'class="card just-discarded');
+        return html;
+      }).join('')}</div>
+      ${lastDiscardedCards.length > 0 ? `<div style="font-size:11px;color:#ff9900;padding:2px 4px;">↑ 今捨てたカード (${lastDiscardedCards.length}枚)</div>` : ''}
+    </div>
+    <div class="btn-row" style="padding:10px 8px;">
+      ${robBtn}
+      ${doubtBtn}
+      ${drawBtn}
+      <button class="btn btn-primary" data-action="end-turn">ターン終了</button>
+    </div>
+  `;
+}
+
+function renderOppTurn() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const myHand = pHand(myP);
+  const myDisc = pDisc(myP);
+  const oppHand = pHand(oppP_num);
+  const oppDisc = pDisc(oppP_num);
+  const oppLastDisc = oppP_num === 1 ? (G.p1LastDisc||[]) : (G.p2LastDisc||[]);
+  const oppLabel = isCpuMode ? 'CPU' : `プレイヤー${oppP_num}`;
+  const waitMsg = isCpuMode ? 'CPUが考えています...' : '相手がアクションを選択中です...';
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML(isCpuMode ? 'CPUのターン' : '相手のターン中')}
+    <div class="section-opp">
+      <div class="section-title">${oppLabel}</div>
+      <div class="section-label">手札 (${oppHand.length}枚)</div>
+      ${cardsRowHTML(oppHand, { facedown: true })}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      ${cardsRowHTML(oppDisc.filter(c => !oppLastDisc.includes(c)))}
+      ${oppLastDisc.length > 0 ? `<div style="font-size:11px;color:#ffd700;padding:2px 4px;">▼ 前ターン捨て札</div>${cardsRowHTML(oppLastDisc, {highlight:true})}` : ''}
+    </div>
+    <div class="middle-area deck-info">デッキ: ${G.deck.length}枚</div>
+    <div class="section-self">
+      <div class="section-title">あなた (プレイヤー${myP})</div>
+      <div class="section-label">手札 (${myHand.length}枚)</div>
+      ${cardsRowHTML(myHand)}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      ${cardsRowHTML(myDisc)}
+    </div>
+    ${cpuActionLog ? `<div class="info-msg" style="margin:6px 8px;border-left:4px solid #ffd700;color:#ffd700;">${cpuActionLog}</div>` : ''}
+    <div class="opp-waiting-msg">${waitMsg}</div>
+  `;
+}
+
+function renderRobEnemy() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const oppDisc = pDisc(oppP_num);
+  const myHand = pHand(myP);
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">ロブ: 相手の捨て札を選択</div>
+    <div class="phase-desc">取りたい相手の捨て札を選んでください（複数可）</div>
+    <div class="section-opp" style="padding:10px;">
+      <div class="section-label">相手の捨て札 (クリックで選択)</div>
+      <div class="card-row">
+        ${oppDisc.map(c => cardHTML(c, { clickable:true, selected: selSet.has(c) })).join('')}
+      </div>
+    </div>
+    <div class="select-count">選択中: ${selSet.size}枚</div>
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">自分の手札</div>
+      ${cardsRowHTML(myHand)}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gray" data-action="cancel-rob">キャンセル</button>
+      <button class="btn ${selSet.size===0?'btn-gray':'btn-primary'}" data-action="confirm-rob-enemy" ${selSet.size===0?'disabled':''}>確認 (${selSet.size}枚取る)</button>
+    </div>
+  `;
+}
+
+function renderRobSelf() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const myHand = pHand(myP);
+  const need = G.pendingRob.length;
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">ロブ: 自分の手札を捨てる</div>
+    <div class="phase-desc">取った${need}枚分、自分の手札から捨てるカードを選んでください</div>
+    <div class="info-msg">取得したカード:</div>
+    <div style="padding:4px 8px;">
+      ${cardsRowHTML(G.pendingRob)}
+    </div>
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">自分の手札 (${need}枚選択してください)</div>
+      <div class="card-row">
+        ${myHand.map(c => cardHTML(c, { clickable:true, selected: selSet.has(c) })).join('')}
+      </div>
+    </div>
+    <div class="select-count">選択中: ${selSet.size} / ${need}枚</div>
+    <div class="btn-row">
+      <button class="btn btn-primary${selSet.size!==need?' btn-gray':''}" data-action="confirm-rob-self" ${selSet.size!==need?'disabled':''}>捨てて取る</button>
+    </div>
+  `;
+}
+
+function renderDoubtDeclare() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">ダウト: ジョーカー枚数を宣言</div>
+    <div class="phase-desc">相手 (プレイヤー${oppP_num}) の手札に入っているジョーカーの枚数を宣言してください</div>
+    <div style="padding:16px 8px;">
+      <button class="btn btn-big" style="background:#5a2d82;margin-bottom:10px;" data-action="doubt-0">0枚</button>
+      <button class="btn btn-big" style="background:#5a2d82;margin-bottom:10px;" data-action="doubt-1">1枚</button>
+      <button class="btn btn-big" style="background:#5a2d82;" data-action="doubt-2">2枚</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gray" data-action="cancel-doubt">キャンセル</button>
+    </div>
+  `;
+}
+
+function renderDoubtResolve() {
+  const dr = G.doubtResult;
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+
+  let resultMsg = '';
+  let resultClass = '';
+  let detailMsg = '';
+
+  if (dr.success) {
+    resultMsg = '成功！';
+    resultClass = 'result-win';
+    if (dr.stolenn > 0) {
+      detailMsg = `ジョーカー${dr.stolenn}枚を奪いました！${dr.stolenn}枚を渡してください。`;
+    } else {
+      detailMsg = `相手のジョーカーは0枚でした。チップの変動なし。`;
+    }
+  } else {
+    resultMsg = '失敗！';
+    resultClass = 'result-lose';
+    detailMsg = `ペナルティ: ${dr.penalty}枚をポットへ`;
+  }
+
+  const revealedHand = dr.oppHandSnapshot || pHand(oppP_num);
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">ダウト結果</div>
+    <div class="section-opp" style="padding:10px;">
+      <div class="section-label">相手 (プレイヤー${oppP_num}) の手札が公開されました</div>
+      ${cardsRowHTML(revealedHand)}
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">実際のジョーカー: ${dr.actual}枚 / 宣言: ${dr.declared}枚</div>
+    </div>
+    <div class="result-box ${dr.success ? 'pop-in' : 'shake'}">
+      <div class="result-msg ${resultClass}">${resultMsg}</div>
+      <div>${detailMsg}</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" data-action="proceed-doubt-resolve">次へ</button>
+    </div>
+  `;
+}
+
+function renderDoubtGive() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const myHand = pHand(myP);
+  const need = G.doubtResult.stolenn;
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">ダウト: カードを渡す</div>
+    <div class="phase-desc">相手に${need}枚渡すカードを選んでください</div>
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">自分の手札 (${need}枚選択)</div>
+      <div class="card-row">
+        ${myHand.map(c => cardHTML(c, { clickable:true, selected: selSet.has(c) })).join('')}
+      </div>
+    </div>
+    <div class="select-count">選択中: ${selSet.size} / ${need}枚</div>
+    <div class="btn-row">
+      <button class="btn btn-primary${selSet.size!==need?' btn-gray':''}" data-action="confirm-doubt-give" ${selSet.size!==need?'disabled':''}>渡す</button>
+    </div>
+  `;
+}
+
+function renderDraw() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const myHand = pHand(myP);
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML()}
+    <div class="phase-title">手札交換</div>
+    <div class="phase-desc">捨てたいカードを選択してから「交換」を押してください（0枚も可）</div>
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">手札 (捨てるカードを選択)</div>
+      <div class="card-row">
+        ${myHand.map(c => cardHTML(c, { clickable:true, selected: selSet.has(c) })).join('')}
+      </div>
+    </div>
+    <div class="select-count">${selSet.size > G.deck.length ? `<span style="color:#ff6666;">デッキ残${G.deck.length}枚を超えています</span>` : `捨て: ${selSet.size}枚 / デッキ: ${G.deck.length}枚`}</div>
+    <div class="btn-row">
+      <button class="btn btn-gray" data-action="cancel-draw">キャンセル</button>
+      <button class="btn btn-info${selSet.size > G.deck.length ? ' btn-gray' : ''}" data-action="confirm-draw" ${selSet.size > G.deck.length ? 'disabled' : ''}>交換 (${selSet.size}枚)</button>
+    </div>
+  `;
+}
+
+function renderBetting() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const myChips = pChips(myP);
+  const senkouP = getSenkouP();
+  const isOpening = G.betLevel === 0; // まだ誰もベットしていない（先攻がオープン）
+  const oppName_b = pName(myP === 1 ? 2 : 1);
+
+  // チップ不足で降り以外の選択肢なし
+  if (myChips <= 0 || (!isOpening && myChips < G.betLevel)) {
+    return `
+      ${topbarHTML()}
+      <div class="phase-title">ベッティング</div>
+      ${!isOpening ? `<div class="info-msg">${oppName_b} のベット: <strong>${G.betLevel}枚</strong></div>` : ''}
+      <div class="info-msg failure">チップが不足しています</div>
+      <div class="section-self" style="padding:10px;">
+        <div class="section-label">あなたの手札</div>
+        ${cardsRowHTML(pHand(myP))}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger btn-big" data-action="bet-fold">降りる<br><small>場代のみ相手へ</small></button>
+        ${!isOpening ? `<button class="btn btn-info btn-big" data-action="bet-call">コール (${G.betLevel}枚)</button>` : ''}
+      </div>`;
+  }
+
+  const minBet = isOpening ? 1 : G.betLevel + 1;
+  const maxBet = myChips;
+  const canRaise = maxBet >= minBet;
+  const bet = Math.min(Math.max(minBet, selBetAmount), maxBet);
+
+  const oppBetInfo = !isOpening
+    ? `<div class="info-msg" style="font-size:14px;">${oppName_b}: <strong style="color:#ffd700;">${G.betLevel}枚</strong> ベット</div>` : '';
+
+  const raiseSection = canRaise ? `
+    <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:10px 0 6px;">
+      <button class="btn btn-gray" data-action="bet-dec" style="font-size:18px;padding:5px 12px;" ${bet<=minBet?'disabled':''}>−</button>
+      <span style="font-size:28px;font-weight:bold;color:#ffd700;min-width:50px;text-align:center;">${bet}</span>
+      <button class="btn btn-gray" data-action="bet-inc" style="font-size:18px;padding:5px 12px;" ${bet>=maxBet?'disabled':''}>＋</button>
+    </div>
+    <div style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">${minBet}〜${maxBet}枚</div>` : '';
+
+  const betBtnLabel = isOpening ? `ベット (${bet}枚)` : `レイズ (${bet}枚)`;
+
+  return `
+    ${topbarHTML()}
+    <div class="phase-title">ベッティング</div>
+    <div class="phase-desc">${isOpening ? '先攻: 追加ベット枚数を決めてください' : 'コール・レイズ・降りるを選択'}</div>
+    ${oppBetInfo}
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">あなたの手札</div>
+      ${cardsRowHTML(pHand(myP))}
+    </div>
+    <div style="padding:6px 8px;">
+      <div style="font-size:13px;color:#aaa;text-align:center;">場のチップ: <strong style="color:#ffd700;">${G.pot}枚</strong> / チップ: <strong>${myChips}枚</strong></div>
+      ${raiseSection}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger" data-action="bet-fold">降りる<br><small style="font-size:9px;">場代のみ相手へ</small></button>
+      ${!isOpening ? `<button class="btn btn-info" data-action="bet-call">コール<br><small style="font-size:9px;">${G.betLevel}枚</small></button>` : ''}
+      ${canRaise ? `<button class="btn btn-primary" style="background:#e67e22;" data-action="bet-confirm">${betBtnLabel}</button>` : ''}
+    </div>`;
+}
+
+function renderBetWaiting() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const senkouP = getSenkouP();
+  const myIsActor = G.betActor === myP;
+  // 自分がすでに行動済みの場合、自分のベット額を表示
+  const myBet = myP === senkouP ? G.senkouBetTotal : G.koukouBetTotal;
+  const oppName_w = pName(myP === 1 ? 2 : 1);
+  return `
+    ${topbarHTML()}
+    <div class="phase-title">ベッティング</div>
+    <div class="section-self" style="padding:10px;">
+      <div class="section-label">あなたの手札</div>
+      ${cardsRowHTML(pHand(myP))}
+    </div>
+    <div class="result-box" style="margin-top:10px;">
+      <div style="font-size:15px;color:#ffd700;font-weight:bold;">
+        ${G.betLevel === 0 ? (isCpuMode ? 'CPUがベット額を決めています...' : '待機中...') : `あなたのベット: ${G.betLevel}枚`}
+      </div>
+    </div>
+    <div class="opp-waiting-msg">${isCpuMode ? 'CPUが返答中...' : `${oppName_w} の返答を待っています...`}</div>`;
+}
+
+function renderShowdown() {
+  const sd = G.showdownData;
+  const h1 = sd.h1, h2 = sd.h2;
+  const myP = myRole === 'p1' ? 1 : 2;
+
+  // 1試合につき1回だけ音とエフェクト
+  if (G.totalMatches !== _lastShowdownSoundMatch) {
+    _lastShowdownSoundMatch = G.totalMatches;
+    sfxShowdown();
+    if (sd.winner === myP) {
+      setTimeout(sfxWin, 350);
+      setTimeout(showConfetti, 500);
+    } else if (sd.winner !== 0) {
+      setTimeout(sfxLose, 350);
+    }
+  }
+
+  let winnerMsg = '';
+  let winClass = '';
+  const n1 = pName(1), n2 = pName(2);
+  if (sd.winner === 1) {
+    winnerMsg = sd.folded === 1 ? `${n1} が降りました。${n2} の勝利！ +${sd.potBefore}枚`
+                                : `${n1} の勝利！ +${sd.potBefore}枚`;
+    winClass = 'result-win';
+  } else if (sd.winner === 2) {
+    winnerMsg = sd.folded === 2 ? `${n2} が降りました。${n1} の勝利！ +${sd.potBefore}枚`
+                                : `${n2} の勝利！ +${sd.potBefore}枚`;
+    winClass = 'result-win';
+  } else {
+    winnerMsg = sd.bothFolded ? `両者降り！ 引き分け`
+                              : `引き分け！ ポット持ち越し (${sd.potBefore}枚)`;
+    winClass = 'result-draw';
+  }
+
+  const p1hl = sd.winner === 1;
+  const p2hl = sd.winner === 2;
+  const isFold = sd.folded != null || sd.bothFolded;
+
+  // ベット情報表示
+  const betInfo = !isFold && (G.p1Bet || G.p2Bet)
+    ? `<div style="font-size:12px;color:#aaa;margin-top:4px;">ベット P1:+${G.p1Bet||0}枚 / P2:+${G.p2Bet||0}枚</div>` : '';
+
+  let actionHtml = '';
+  if (G.phase === 'game-over') {
+    actionHtml = `<div class="btn-row"><button class="btn btn-primary btn-big" data-action="new-game">ロビーへ戻る</button></div>`;
+  } else if (myP === 1) {
+    actionHtml = `<div class="btn-row"><button class="btn btn-primary btn-big" data-action="next-match">次の試合へ</button></div>`;
+  } else {
+    actionHtml = `<div class="opp-waiting-msg">P1が次の試合を開始します...</div>`;
+  }
+
+  // 降りた場合は手札非表示
+  const handsHtml = isFold ? '' : `
+    <div class="showdown-player">
+      <span class="player-label p1-label">${n1}</span>
+      ${cardsRowHTML(G.p1Hand, { highlight: p1hl, deal: true })}
+      <div class="hand-eval pop-in ${p1hl?'result-win':''}">${h1 ? h1.name : ''}</div>
+    </div>
+    <div class="showdown-player">
+      <span class="player-label p2-label">${n2}</span>
+      ${cardsRowHTML(G.p2Hand, { highlight: p2hl, deal: true })}
+      <div class="hand-eval pop-in ${p2hl?'result-win':''}">${h2 ? h2.name : ''}</div>
+    </div>`;
+
+  return `
+    ${topbarHTML()}
+    <div class="phase-title glow-text">${isFold ? '降り！' : 'ショーダウン！'}</div>
+    ${handsHtml}
+    <div class="result-box fade-in-up">
+      <div class="result-msg ${winClass}">${winnerMsg}</div>
+      ${betInfo}
+      <div style="font-size:13px;color:#aaa;margin-top:4px;">P1: ${G.p1Chips}枚 / P2: ${G.p2Chips}枚 / 場: ${G.pot}枚</div>
+    </div>
+    <div class="match-info">マッチ ${G.totalMatches} / 4 完了</div>
+    ${actionHtml}
+  `;
+}
+
+function renderGameOver() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  let winner = '';
+  let winColor = '#ffaa00';
+  if (G.p1Chips > G.p2Chips) {
+    winner = `${pName(1)} の勝利！`;
+    winColor = myP === 1 ? '#00ff88' : '#ff4444';
+  } else if (G.p2Chips > G.p1Chips) {
+    winner = `${pName(2)} の勝利！`;
+    winColor = myP === 2 ? '#00ff88' : '#ff4444';
+  } else {
+    winner = '引き分け！';
+  }
+
+  return `<div class="game-over-screen">
+    <h2>ゲーム終了</h2>
+    <div class="chips-final" style="color:#ff9999;">${pName(1)}: ${G.p1Chips}枚</div>
+    <div class="chips-final" style="color:#99ccff;">${pName(2)}: ${G.p2Chips}枚</div>
+    <div class="winner-msg" style="color:${winColor};">${winner}</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px;">マッチ数: ${G.totalMatches} / 4</div>
+    <button class="btn btn-primary btn-big" data-action="new-game">もう一度 (ロビーへ)</button>
+  </div>`;
+}
+
+// =====================================================
+// EVENTS
+// =====================================================
+function attachEvents() {
+  const app = document.getElementById('app');
+
+  app.querySelectorAll('[data-action]').forEach(el => {
+    el.addEventListener('click', async e => {
+      e.preventDefault();
+      const action = el.getAttribute('data-action');
+      await handleAction(action, el);
+    });
+  });
+
+  app.querySelectorAll('.card.clickable').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const id = parseInt(el.getAttribute('data-id'));
+      handleCardClick(id);
+    });
+  });
+}
+
+async function handleAction(action, el = null) {
+  // ブラウザのautoplay制限を回避: ユーザー操作でAudioContextを再開
+  const _ctx = getAudioCtx();
+  if (_ctx && _ctx.state === 'suspended') await _ctx.resume();
+
+  switch(action) {
+    case 'start-cpu': {
+      const nameElCpu = document.getElementById('name-input');
+      myPlayerName = nameElCpu ? nameElCpu.value.trim() : '';
+      startCpuGame();
+      break;
+    }
+
+    case 'create-room': {
+      const nameEl = document.getElementById('name-input');
+      myPlayerName = nameEl ? nameEl.value.trim() : '';
+      await createRoom();
+      break;
+    }
+
+    case 'join-room': {
+      const nameEl2 = document.getElementById('name-input');
+      myPlayerName = nameEl2 ? nameEl2.value.trim() : '';
+      const input = document.getElementById('room-input');
+      await joinRoom(input ? input.value : '');
+      break;
+    }
+
+    case 'reconnect': {
+      const savedRoom = sessionStorage.getItem('bond_room');
+      const savedRole = sessionStorage.getItem('bond_role');
+      if (savedRoom && savedRole) {
+        roomId = savedRoom;
+        myRole = savedRole;
+        if (savedRole === 'p1') {
+          // P1 reconnect: listen for game
+          startGameSSE();
+          localPhase = 'opp-turn';
+        } else {
+          startGameSSE();
+          localPhase = 'waiting-guest';
+        }
+        setConnStatus(true);
+        render();
+      }
+      break;
+    }
+
+    case 'clear-session':
+      sessionStorage.removeItem('bond_room');
+      sessionStorage.removeItem('bond_role');
+      localPhase = 'lobby';
+      render();
+      break;
+
+    case 'copy-room-code':
+      if (roomId) {
+        navigator.clipboard.writeText(roomId).then(() => {
+          const btn = document.querySelector('[data-action="copy-room-code"]');
+          if (btn) { btn.textContent = 'コピーしました！'; setTimeout(() => { btn.textContent = 'コードをコピー'; }, 2000); }
+        }).catch(() => {
+          prompt('部屋コード:', roomId);
+        });
+      }
+      break;
+
+    case 'do-rob':
+      await doRob();
+      break;
+
+    case 'confirm-rob-enemy':
+      await confirmRobEnemy();
+      break;
+
+    case 'cancel-rob':
+      localPhase = 'my-turn';
+      selSet = new Set();
+      render();
+      break;
+
+    case 'confirm-rob-self':
+      await confirmRobSelf();
+      break;
+
+    case 'do-doubt':
+      localPhase = 'doubt-declare';
+      render();
+      break;
+
+    case 'cancel-doubt':
+      localPhase = 'my-turn';
+      selSet = new Set();
+      render();
+      break;
+
+    case 'doubt-0':
+      await confirmDoubt(0);
+      break;
+
+    case 'doubt-1':
+      await confirmDoubt(1);
+      break;
+
+    case 'doubt-2':
+      await confirmDoubt(2);
+      break;
+
+    case 'proceed-doubt-resolve':
+      proceedDoubtResolve();
+      break;
+
+    case 'confirm-doubt-give':
+      await confirmDoubtGive();
+      break;
+
+    case 'do-draw':
+      localPhase = 'draw';
+      selSet = new Set();
+      render();
+      break;
+
+    case 'confirm-draw':
+      await confirmDraw();
+      break;
+
+    case 'cancel-draw':
+      localPhase = 'my-turn';
+      selSet = new Set();
+      render();
+      break;
+
+    case 'bet-dec': {
+      const minD = G.betLevel > 0 ? G.betLevel + 1 : 1;
+      const maxD = pChips(myRole === 'p1' ? 1 : 2);
+      selBetAmount = Math.max(minD, Math.min(selBetAmount - 1, maxD));
+      render();
+      break;
+    }
+    case 'bet-inc': {
+      const minI = G.betLevel > 0 ? G.betLevel + 1 : 1;
+      const maxI = pChips(myRole === 'p1' ? 1 : 2);
+      selBetAmount = Math.min(maxI, Math.max(selBetAmount + 1, minI));
+      render();
+      break;
+    }
+    case 'bet-confirm': {
+      const myChipsC = pChips(myRole === 'p1' ? 1 : 2);
+      const minC = G.betLevel > 0 ? G.betLevel + 1 : 1;
+      const finalBet = Math.max(minC, Math.min(selBetAmount, myChipsC));
+      selBetAmount = 1;
+      await submitBet('bet', finalBet);
+      break;
+    }
+    case 'bet-call':
+      selBetAmount = 1;
+      await submitBet('call');
+      break;
+    case 'bet-fold':
+      selBetAmount = 1;
+      await submitBet('fold');
+      break;
+
+    case 'end-turn':
+      sfxClick();
+      await endTurn();
+      break;
+
+    case 'next-match':
+      sfxClick();
+      if (myRole === 'p1') await nextMatch();
+      break;
+
+    case 'new-game':
+      stopBGM();
+      if (sseGame) { sseGame.close(); sseGame = null; }
+      if (p1WaitSSE) { p1WaitSSE.close(); p1WaitSSE = null; }
+      sessionStorage.removeItem('bond_room');
+      sessionStorage.removeItem('bond_role');
+      myRole = null;
+      roomId = null;
+      G = {};
+      selSet = new Set();
+      localPhase = 'lobby';
+      errorMsg = null;
+      showRules = false;
+      isCpuMode = false;
+      cpuActionLog = '';
+      _lastShowdownSoundMatch = -1;
+      setConnStatus(false);
+      availableRooms = null;
+      loadAvailableRooms();
+      render();
+      break;
+
+    case 'join-room-id': {
+      const nameEl3 = document.getElementById('name-input');
+      myPlayerName = nameEl3 ? nameEl3.value.trim() : '';
+      const roomCode = el ? el.getAttribute('data-room') : '';
+      if (roomCode) await joinRoom(roomCode);
+      break;
+    }
+
+    case 'refresh-rooms':
+      availableRooms = null;
+      render();
+      loadAvailableRooms();
+      break;
+
+    case 'toggle-rules':
+      showRules = !showRules;
+      render();
+      break;
+  }
+}
+
+function handleCardClick(id) {
+  // AudioContext resume on user gesture
+  const _ctx = getAudioCtx();
+  if (_ctx && _ctx.state === 'suspended') _ctx.resume();
+
+  if (['rob-enemy', 'rob-self', 'doubt-give', 'draw'].includes(localPhase)) {
+    sfxCardClick();
+    if (selSet.has(id)) {
+      selSet.delete(id);
+    } else {
+      // draw フェーズではデッキ枚数を超えて選択できない
+      if (localPhase === 'draw' && selSet.size >= G.deck.length) return;
+      selSet.add(id);
+    }
+    render();
+  }
+}
+
+// =====================================================
+// INIT
+// =====================================================
+localPhase = 'lobby';
+render();
+loadAvailableRooms();
+</script>
+</body>
+</html>
+<!-- Firebase セットアップ手順
+1. https://console.firebase.google.com でプロジェクト作成
+2. Realtime Database を作成 (テストモード)
+3. プロジェクト設定からdatabaseURLをコピー
+4. このファイルの FIREBASE_DB_URL を書き換える
+   例: const FIREBASE_DB_URL = 'https://myapp-default-rtdb.firebaseio.com';
+5. Firebase コンソールの「ルール」タブで以下を設定:
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+-->

@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "work.md",
+      ".firebase"
+    ],
+    "rewrites": [
+      { "source": "**", "destination": "/online.html" }
+    ]
+  }
+}
