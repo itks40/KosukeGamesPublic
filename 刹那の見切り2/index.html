@@ -390,6 +390,134 @@
 
 <script>
 // =============================================
+// SOUND ENGINE
+// =============================================
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playOsc(ctx, freq, type, t, dur, vol, freqEnd) {
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t);
+  if (freqEnd) osc.frequency.exponentialRampToValueAtTime(freqEnd, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur + 0.01);
+}
+
+function playNoise(ctx, t, dur, vol, filterType, filterFreq) {
+  const len = Math.ceil(ctx.sampleRate * dur);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src  = ctx.createBufferSource(); src.buffer = buf;
+  const filt = ctx.createBiquadFilter();
+  filt.type = filterType || 'highpass'; filt.frequency.value = filterFreq || 8000;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(vol, t); gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+  src.start(t); src.stop(t + dur + 0.01);
+}
+
+// ---- BGM ----
+let bgmActive = false, bgmTimerId = null, bgmNext = 0;
+const BPM = 124, BEAT = 60 / BPM;
+
+function kickDrum(ctx, t) {
+  playOsc(ctx, 100, 'sine', t, 0.25, 0.55, 28);
+  playNoise(ctx, t, 0.05, 0.08, 'lowpass', 300);
+}
+function hatDrum(ctx, t, vol) {
+  playNoise(ctx, t, 0.07, vol || 0.1, 'highpass', 9000);
+}
+function bassNote(ctx, t, freq) {
+  if (!freq) return;
+  const osc  = ctx.createOscillator();
+  const filt = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  osc.type = 'sawtooth'; osc.frequency.value = freq;
+  filt.type = 'lowpass'; filt.frequency.value = 380;
+  gain.gain.setValueAtTime(0.16, t); gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+  osc.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + 0.3);
+}
+
+function scheduleBGM() {
+  if (!bgmActive) return;
+  const ctx = getAudioCtx(), now = ctx.currentTime;
+  if (bgmNext < now) bgmNext = now;
+  while (bgmNext < now + 1.5) {
+    const t = bgmNext;
+    kickDrum(ctx, t); kickDrum(ctx, t + BEAT * 2);
+    for (let i = 0; i < 8; i++) hatDrum(ctx, t + BEAT * 0.5 * i, i % 2 === 0 ? 0.09 : 0.055);
+    [110, 0, 82.4, 0, 110, 0, 98, 0].forEach((f, i) => bassNote(ctx, t + BEAT * 0.5 * i, f));
+    bgmNext += BEAT * 4;
+  }
+  bgmTimerId = setTimeout(scheduleBGM, 600);
+}
+
+function startBGM() {
+  if (bgmActive) return;
+  bgmActive = true;
+  bgmNext = getAudioCtx().currentTime + 0.05;
+  scheduleBGM();
+}
+function stopBGM() {
+  bgmActive = false;
+  clearTimeout(bgmTimerId);
+}
+
+// ---- SE ----
+function seClick() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  playOsc(ctx, 700, 'sine', t, 0.07, 0.14);
+}
+
+function seReady() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  playOsc(ctx, 330, 'sine', t, 0.18, 0.28, 440);
+}
+
+function seAttack() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  playOsc(ctx, 1200, 'square', t, 0.12, 0.35, 600);
+  playNoise(ctx, t, 0.08, 0.22, 'highpass', 7000);
+}
+
+function seHit() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  playOsc(ctx, 880, 'sine', t, 0.12, 0.3, 1320);
+  playOsc(ctx, 1100, 'sine', t + 0.04, 0.1, 0.2, 1540);
+  playNoise(ctx, t, 0.04, 0.12, 'highpass', 5000);
+}
+
+function seFoul() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  playOsc(ctx, 220, 'sawtooth', t, 0.4, 0.25, 80);
+}
+
+function seTimeout() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  [0, 0.14, 0.28].forEach(d => playOsc(ctx, 160, 'square', t + d, 0.11, 0.18));
+}
+
+function seComplete() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  [440, 554, 660].forEach((f, i) => playOsc(ctx, f, 'sine', t + i * 0.09, 0.22, 0.22));
+}
+
+function seRecord() {
+  const ctx = getAudioCtx(), t = ctx.currentTime;
+  [523, 659, 784, 1047].forEach((f, i) => playOsc(ctx, f, 'sine', t + i * 0.11, 0.28, 0.28));
+}
+
+// =============================================
 // FIREBASE CONFIG
 // =============================================
 const FIREBASE_DB_URL = 'https://setsuna-a37a5-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -534,10 +662,12 @@ function initTitle() {
 }
 
 document.getElementById('btn-start-game').addEventListener('click', () => {
+  seClick();
   startGame();
 });
 
 document.getElementById('btn-go-ranking').addEventListener('click', () => {
+  seClick();
   showScreen('screen-ranking');
   loadRanking();
 });
@@ -557,6 +687,7 @@ function startGame() {
 
   showScreen('screen-game');
   updateHistoryRow();
+  startBGM();
   startRound();
 }
 
@@ -571,6 +702,7 @@ function startRound() {
   document.getElementById('round-num').textContent = `${game.currentRound} / ${TOTAL_ROUNDS}`;
   setSignal('ready', '⚠ 構えろ！', '');
   setTapBtn('ready');
+  seReady();
 
   const delay = WAIT_MIN + Math.random() * (WAIT_MAX - WAIT_MIN);
   game.attackAt = Date.now() + delay;
@@ -581,6 +713,7 @@ function startRound() {
     setSignal('attack', '⚡ 今だ！', '');
     setTapBtn('attacking');
     doFlash('#ff440088');
+    seAttack();
 
     // タイムオーバー
     game.timeoutTimer = setTimeout(() => {
@@ -604,13 +737,16 @@ function recordResult(ms, type) {
     setSignal('foul', '❌ フライング！', 'ペナルティ 999ms');
     setTapBtn('idle');
     doFlash('#ff000066');
+    seFoul();
   } else if (type === 'timeout') {
     setSignal('foul', '⏱ 時間切れ！', 'ペナルティ 999ms');
     setTapBtn('idle');
+    seTimeout();
   } else {
     setSignal('', `${ms}ms`, '');
     setTapBtn('idle');
     doFlash('#00ff8844');
+    seHit();
   }
 
   setTimeout(() => {
@@ -696,6 +832,9 @@ function showResult() {
   const isNewRecord = prevBest == null || avg < prevBest;
   if (isNewRecord) saveBest(avg);
 
+  stopBGM();
+  if (isNewRecord) seRecord(); else seComplete();
+
   // カード
   const card = document.getElementById('result-card');
   card.className = 'result-card' + (isNewRecord ? ' new-record' : '');
@@ -775,6 +914,8 @@ document.getElementById('btn-retry').addEventListener('click', () => {
 });
 
 document.getElementById('btn-to-title').addEventListener('click', () => {
+  seClick();
+  stopBGM();
   document.getElementById('btn-register').disabled    = false;
   document.getElementById('btn-register').textContent = '📤 ランキングに登録';
   document.getElementById('btn-register').style.borderColor = '';
@@ -832,6 +973,7 @@ async function loadRanking() {
 document.getElementById('btn-reload-ranking').addEventListener('click', loadRanking);
 
 document.getElementById('btn-ranking-back').addEventListener('click', () => {
+  seClick();
   showScreen('screen-title');
 });
 
