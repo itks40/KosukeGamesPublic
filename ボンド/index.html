@@ -1528,12 +1528,13 @@ function checkGameOver() {
 async function nextMatch() {
   if (checkGameOver()) {
     G.phase = 'game-over';
-    await syncGame();
     localPhase = 'game-over';
+    await syncGame();
   } else {
     startMatch();
-    await syncGame();
     selSet = new Set();
+    // localPhaseをsyncGame()より先に更新する（syncGameがrender()を呼ぶため、
+    // showdownDataがnullになった状態でrenderShowdownが呼ばれるのを防ぐ）
     if (isCpuMode) {
       if (G.phase === 'p1-action') {
         localPhase = 'my-turn';
@@ -1542,10 +1543,10 @@ async function nextMatch() {
         setTimeout(cpuTakeTurn, 1200);
       }
     } else {
-      // 自分が先攻なら'my-turn'、後攻なら'opp-turn'（SSEは自分の書き込みをスキップするため直接設定）
       const myPhase = myRole === 'p1' ? 'p1-action' : 'p2-action';
       localPhase = G.phase === myPhase ? 'my-turn' : 'opp-turn';
     }
+    await syncGame();
   }
   render();
 }
