@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>刹那の見切り2</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 8px 0 40px;
+      user-select: none;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 480px;
+      padding: 0 14px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #ffe066;
+      text-shadow: 0 0 20px #ffaa00;
+      margin-bottom: 4px;
+      text-align: center;
+      letter-spacing: 0.1em;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #555;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      font-size: 1rem;
+      border: 2px solid #ffe066;
+      background: transparent;
+      color: #ffe066;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+      width: 100%;
+    }
+    .btn:hover { background: #ffe06622; box-shadow: 0 0 10px #ffaa0066; }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.35; cursor: default; }
+    .btn-sub {
+      border-color: #555;
+      color: #888;
+      font-size: 0.85rem;
+    }
+    .btn-sub:hover { border-color: #ffe066; color: #ffe066; }
+
+    /* ===== SCREENS ===== */
+    .screen { display: none; }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* ===== TITLE ===== */
+    .best-box {
+      background: #111122;
+      border: 1px solid #2a2a44;
+      border-radius: 14px;
+      padding: 18px 24px;
+      width: 100%;
+      text-align: center;
+    }
+    .best-label { font-size: 0.8rem; color: #555; margin-bottom: 6px; }
+    .best-score { font-size: 2rem; font-weight: bold; color: #ffe066; text-shadow: 0 0 10px #ffaa00; }
+    .best-rank  { font-size: 0.9rem; color: #aaa; margin-top: 4px; }
+
+    .btn-ranking {
+      border-color: #4466ff;
+      color: #4466ff;
+    }
+    .btn-ranking:hover { background: #4466ff22; box-shadow: 0 0 10px #4466ff66; }
+
+    /* ===== NAME INPUT ===== */
+    .input-card {
+      background: #111122;
+      border: 1px solid #2a2a44;
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .input-card h2 { font-size: 1rem; color: #ffe066; }
+
+    label {
+      font-size: 0.85rem;
+      color: #aaa;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    input[type=text] {
+      background: #1a1a2e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      outline: none;
+      width: 100%;
+    }
+    input[type=text]:focus { border-color: #ffe066; }
+
+    /* ===== GAME ===== */
+    #screen-game.active { display: block; }
+
+    .round-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .round-label { font-size: 0.85rem; color: #555; }
+    .round-num   { font-size: 1.6rem; font-weight: bold; color: #ffe066; }
+
+    /* シグナル */
+    #signal-area {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 4px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d1f;
+      margin: 0 auto 12px;
+      transition: all 0.15s;
+    }
+    #signal-area.ready  { border-color: #ffaa00; background: #1a1200; box-shadow: 0 0 40px #ffaa0044; }
+    #signal-area.attack { border-color: #ff4444; background: #1a0000; box-shadow: 0 0 60px #ff000088; animation: pulse 0.3s ease-out; }
+    #signal-area.foul   { border-color: #555; background: #111; }
+
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    #signal-text { font-size: 1.6rem; font-weight: bold; color: #fff; text-align: center; line-height: 1.3; }
+    #signal-sub  { font-size: 0.8rem; color: #888; margin-top: 6px; text-align: center; }
+
+    /* 反応時間履歴 */
+    #history-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 10px;
+      min-height: 32px;
+      flex-wrap: wrap;
+    }
+    .hist-chip {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      background: #111122;
+      border: 1px solid #333;
+      color: #aaa;
+    }
+    .hist-chip.ok   { border-color: #44ff88; color: #44ff88; }
+    .hist-chip.foul { border-color: #ff6666; color: #ff6666; }
+
+    /* タップボタン */
+    #btn-tap {
+      display: block;
+      width: 100%;
+      padding: 36px;
+      margin-top: 10px;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      border: 3px solid #555;
+      background: rgba(255,255,255,0.04);
+      color: #666;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: all 0.1s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #btn-tap.ready     { border-color: #ffaa00; color: #ffaa00; background: rgba(255,170,0,0.08); }
+    #btn-tap.attacking { border-color: #ff4444; color: #ff4444; background: rgba(255,68,68,0.12); animation: tap-pulse 0.4s ease-out infinite alternate; }
+    #btn-tap:active    { transform: scale(0.97); }
+
+    @keyframes tap-pulse {
+      from { box-shadow: 0 0 10px #ff444455; }
+      to   { box-shadow: 0 0 40px #ff4444aa; }
+    }
+
+    /* attack flash */
+    #attack-flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.05s; z-index: 10; }
+
+    /* ===== RESULT ===== */
+    .result-card {
+      background: #111122;
+      border: 2px solid #333;
+      border-radius: 18px;
+      padding: 28px 24px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .result-card.new-record { border-color: #ffe066; box-shadow: 0 0 30px #ffaa0066; }
+
+    .result-avg-label { font-size: 0.85rem; color: #555; }
+    .result-avg { font-size: 3rem; font-weight: bold; color: #ffe066; text-shadow: 0 0 15px #ffaa00; }
+    .result-avg-unit { font-size: 1rem; color: #aaa; margin-left: 4px; }
+    .result-rank { font-size: 1.8rem; font-weight: bold; margin-top: 4px; }
+    .result-new-record { font-size: 1rem; color: #ffe066; font-weight: bold; animation: blink 0.8s ease-in-out infinite alternate; }
+
+    @keyframes blink {
+      from { opacity: 1; text-shadow: 0 0 10px #ffaa00; }
+      to   { opacity: 0.5; text-shadow: none; }
+    }
+
+    /* ラウンド内訳 */
+    .breakdown {
+      background: #0d0d1f;
+      border-radius: 12px;
+      padding: 14px 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .breakdown-title { font-size: 0.8rem; color: #555; margin-bottom: 2px; }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+    .breakdown-round { color: #666; }
+    .breakdown-time  { font-weight: bold; }
+    .breakdown-time.ok   { color: #44ff88; }
+    .breakdown-time.foul { color: #ff6666; }
+    .breakdown-time.timeout { color: #ff9944; }
+
+    .result-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    /* ===== RANKING ===== */
+    .ranking-tabs {
+      display: none; /* 難易度なし = タブなし */
+    }
+
+    .ranking-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #0d0d1f;
+      border: 1px solid #2a2a44;
+      border-radius: 8px;
+    }
+    .rank-item.mine { border-color: #ffe066; background: #1a1a00; }
+
+    .rank-pos   { font-size: 1rem; font-weight: bold; color: #555; min-width: 28px; text-align: right; }
+    .rank-pos.top { color: #ffe066; }
+    .rank-name  { flex: 1; font-size: 0.92rem; color: #ddd; }
+    .rank-score { font-size: 0.88rem; font-weight: bold; color: #44ff88; }
+    .rank-grade { font-size: 0.75rem; color: #555; min-width: 28px; text-align: right; }
+    .rank-date  { font-size: 0.7rem; color: #444; }
+
+    .ranking-empty { color: #555; font-size: 0.9rem; text-align: center; padding: 20px 0; }
+
+    .ranking-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ranking-header h2 { font-size: 1.1rem; color: #ffe066; }
+  </style>
+</head>
+<body>
+
+<div id="attack-flash"></div>
+
+<div id="app">
+  <h1>⚔ 刹那の見切り2</h1>
+  <p class="subtitle">合図が出たらタップ！ — 5ラウンド反応速度測定</p>
+
+  <!-- ===== TITLE ===== -->
+  <div id="screen-title" class="screen active">
+    <div class="best-box" id="title-best-box">
+      <div class="best-label">自己ベスト</div>
+      <div class="best-score" id="title-best-score">---</div>
+      <div class="best-rank"  id="title-best-rank"></div>
+    </div>
+
+    <div class="input-card">
+      <h2>🎮 ニックネーム</h2>
+      <label>
+        <input type="text" id="input-name" maxlength="12" placeholder="例: こうすけ" autocomplete="off">
+      </label>
+    </div>
+
+    <button class="btn" id="btn-start-game">▶ はじめる</button>
+    <button class="btn btn-ranking" id="btn-go-ranking">🏆 ランキング</button>
+  </div>
+
+  <!-- ===== GAME ===== -->
+  <div id="screen-game" class="screen">
+    <div class="round-header">
+      <div class="round-label">ラウンド</div>
+      <div class="round-num" id="round-num">1 / 5</div>
+    </div>
+
+    <div id="signal-area">
+      <div id="signal-text">READY</div>
+      <div id="signal-sub"></div>
+    </div>
+
+    <div id="history-row"></div>
+
+    <button id="btn-tap">⚔ タップ！</button>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div id="screen-result" class="screen">
+    <div class="result-card" id="result-card">
+      <div>
+        <div class="result-avg-label">平均反応時間</div>
+        <div>
+          <span class="result-avg" id="result-avg">---</span>
+          <span class="result-avg-unit">ms</span>
+        </div>
+      </div>
+      <div class="result-rank" id="result-rank"></div>
+      <div class="result-new-record" id="result-new-record" style="display:none;">🎉 NEW RECORD!</div>
+    </div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="result-btns">
+      <button class="btn" id="btn-register">📤 ランキングに登録</button>
+      <button class="btn btn-sub" id="btn-retry">🔄 もう一度</button>
+      <button class="btn btn-sub" id="btn-to-title">🏠 タイトルへ</button>
+    </div>
+  </div>
+
+  <!-- ===== RANKING ===== -->
+  <div id="screen-ranking" class="screen">
+    <div class="ranking-header">
+      <h2>🏆 ランキング TOP20</h2>
+      <button class="btn btn-sub" id="btn-reload-ranking" style="width:auto;padding:6px 14px;font-size:0.8rem;">↺ 更新</button>
+    </div>
+    <div class="ranking-list" id="ranking-list">
+      <div class="ranking-empty">読み込み中…</div>
+    </div>
+    <button class="btn btn-sub" id="btn-ranking-back">← 戻る</button>
+  </div>
+</div>
+
+<script>
+// =============================================
+// FIREBASE CONFIG
+// =============================================
+const FIREBASE_DB_URL = 'https://setsuna-a37a5-default-rtdb.asia-southeast1.firebasedatabase.app';
+const RANKINGS_PATH = '/rankings2';
+
+async function fbWrite(path, data) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`write failed: ${res.status}`);
+  return res.json();
+}
+
+async function fbPush(path, data) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`push failed: ${res.status}`);
+  return res.json();
+}
+
+async function fbRead(path) {
+  const res = await fetch(`${FIREBASE_DB_URL}${path}.json`);
+  if (!res.ok) throw new Error(`read failed: ${res.status}`);
+  return res.json();
+}
+
+// =============================================
+// CONSTANTS & RANKS
+// =============================================
+const TOTAL_ROUNDS = 5;
+const PENALTY_MS   = 999;
+const TIMEOUT_MS   = 2000;  // 合図から2秒でタイムオーバー
+
+// 待機時間: ふつう固定
+const WAIT_MIN = 1000;
+const WAIT_MAX = 4000;
+
+const RANK_TABLE = [
+  { max: 149,  rank: 'SSS', label: '神速 SSS', color: '#ff4444' },
+  { max: 199,  rank: 'SS',  label: '剣聖 SS',  color: '#ff8844' },
+  { max: 249,  rank: 'S',   label: '達人 S',   color: '#ffaa00' },
+  { max: 299,  rank: 'A',   label: '上級 A',   color: '#ffe066' },
+  { max: 399,  rank: 'B',   label: '中級 B',   color: '#88ff88' },
+  { max: 499,  rank: 'C',   label: '初級 C',   color: '#44ffff' },
+  { max: Infinity, rank: 'D', label: '修行中 D', color: '#888' },
+];
+
+function getRank(avgMs) {
+  return RANK_TABLE.find(r => avgMs <= r.max) || RANK_TABLE[RANK_TABLE.length - 1];
+}
+
+// =============================================
+// LOCAL STORAGE
+// =============================================
+function loadBest() {
+  try {
+    return JSON.parse(localStorage.getItem('setsuna2_best') || 'null');
+  } catch { return null; }
+}
+
+function saveBest(score) {
+  localStorage.setItem('setsuna2_best', JSON.stringify(score));
+}
+
+function loadName() {
+  return localStorage.getItem('setsuna2_name') || '';
+}
+
+function saveName(name) {
+  localStorage.setItem('setsuna2_name', name);
+}
+
+// =============================================
+// UI HELPERS
+// =============================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setSignal(cls, main, sub) {
+  const area = document.getElementById('signal-area');
+  area.className = cls || '';
+  document.getElementById('signal-text').textContent = main;
+  document.getElementById('signal-sub').textContent  = sub || '';
+}
+
+function doFlash(color) {
+  const f = document.getElementById('attack-flash');
+  f.style.background = color;
+  f.style.opacity = '0.5';
+  setTimeout(() => f.style.opacity = '0', 120);
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+// =============================================
+// GAME STATE
+// =============================================
+const game = {
+  rounds: [],        // 各ラウンドの結果 ms (PENALTY_MS = フライング/タイムアウト)
+  roundType: [],     // 'ok' | 'foul' | 'timeout'
+  currentRound: 0,
+  phase: 'idle',    // 'idle' | 'countdown' | 'attacking' | 'done'
+  attackAt: null,
+  attackTimer: null,
+  timeoutTimer: null,
+  tapLocked: false,
+};
+
+// =============================================
+// TITLE SCREEN
+// =============================================
+function initTitle() {
+  const best = loadBest();
+  if (best != null) {
+    const r = getRank(best);
+    document.getElementById('title-best-score').textContent = best + ' ms';
+    document.getElementById('title-best-rank').textContent  = r.label;
+    document.getElementById('title-best-rank').style.color  = r.color;
+  } else {
+    document.getElementById('title-best-score').textContent = '---';
+    document.getElementById('title-best-rank').textContent  = 'まだ記録がありません';
+    document.getElementById('title-best-rank').style.color  = '#555';
+  }
+
+  const savedName = loadName();
+  if (savedName) {
+    document.getElementById('input-name').value = savedName;
+  }
+}
+
+document.getElementById('btn-start-game').addEventListener('click', () => {
+  startGame();
+});
+
+document.getElementById('btn-go-ranking').addEventListener('click', () => {
+  showScreen('screen-ranking');
+  loadRanking();
+});
+
+// =============================================
+// GAME START
+// =============================================
+function startGame() {
+  game.rounds     = [];
+  game.roundType  = [];
+  game.currentRound = 0;
+  game.phase      = 'idle';
+  game.tapLocked  = false;
+
+  const name = document.getElementById('input-name').value.trim();
+  if (name) saveName(name);
+
+  showScreen('screen-game');
+  updateHistoryRow();
+  startRound();
+}
+
+function startRound() {
+  game.currentRound++;
+  game.phase     = 'countdown';
+  game.tapLocked = false;
+  game.attackAt  = null;
+  clearTimeout(game.attackTimer);
+  clearTimeout(game.timeoutTimer);
+
+  document.getElementById('round-num').textContent = `${game.currentRound} / ${TOTAL_ROUNDS}`;
+  setSignal('ready', '⚠ 構えろ！', '');
+  setTapBtn('ready');
+
+  const delay = WAIT_MIN + Math.random() * (WAIT_MAX - WAIT_MIN);
+  game.attackAt = Date.now() + delay;
+
+  game.attackTimer = setTimeout(() => {
+    if (game.phase !== 'countdown') return;
+    game.phase = 'attacking';
+    setSignal('attack', '⚡ 今だ！', '');
+    setTapBtn('attacking');
+    doFlash('#ff440088');
+
+    // タイムオーバー
+    game.timeoutTimer = setTimeout(() => {
+      if (game.phase !== 'attacking') return;
+      recordResult(PENALTY_MS, 'timeout');
+    }, TIMEOUT_MS);
+  }, delay);
+}
+
+function recordResult(ms, type) {
+  game.phase = 'done';
+  game.tapLocked = true;
+  clearTimeout(game.attackTimer);
+  clearTimeout(game.timeoutTimer);
+
+  game.rounds.push(ms);
+  game.roundType.push(type);
+  updateHistoryRow();
+
+  if (type === 'foul') {
+    setSignal('foul', '❌ フライング！', 'ペナルティ 999ms');
+    setTapBtn('idle');
+    doFlash('#ff000066');
+  } else if (type === 'timeout') {
+    setSignal('foul', '⏱ 時間切れ！', 'ペナルティ 999ms');
+    setTapBtn('idle');
+  } else {
+    setSignal('', `${ms}ms`, '');
+    setTapBtn('idle');
+    doFlash('#00ff8844');
+  }
+
+  setTimeout(() => {
+    if (game.currentRound < TOTAL_ROUNDS) {
+      startRound();
+    } else {
+      showResult();
+    }
+  }, type === 'ok' ? 900 : 1200);
+}
+
+function updateHistoryRow() {
+  const row = document.getElementById('history-row');
+  row.innerHTML = '';
+  game.rounds.forEach((ms, i) => {
+    const chip = document.createElement('div');
+    const type = game.roundType[i];
+    chip.className = 'hist-chip ' + (type === 'ok' ? 'ok' : 'foul');
+    chip.textContent = type === 'ok' ? ms + 'ms' : type === 'timeout' ? '⏱ TO' : '❌ FR';
+    row.appendChild(chip);
+  });
+  // 残りスロット
+  for (let i = game.rounds.length; i < TOTAL_ROUNDS; i++) {
+    const chip = document.createElement('div');
+    chip.className = 'hist-chip';
+    chip.textContent = '—';
+    row.appendChild(chip);
+  }
+}
+
+// =============================================
+// TAP HANDLER
+// =============================================
+function handleTap() {
+  if (!document.getElementById('screen-game').classList.contains('active')) return;
+  if (game.tapLocked) return;
+
+  if (game.phase === 'countdown') {
+    // フライング
+    game.tapLocked = true;
+    recordResult(PENALTY_MS, 'foul');
+    return;
+  }
+
+  if (game.phase === 'attacking') {
+    game.tapLocked = true;
+    const ms = Math.max(0, Date.now() - game.attackAt);
+    recordResult(ms, 'ok');
+    return;
+  }
+}
+
+function _onTouch(e) {
+  e.preventDefault();
+  handleTap();
+}
+function _onClick() {
+  handleTap();
+}
+document.getElementById('btn-tap').addEventListener('touchstart', _onTouch, { passive: false });
+document.getElementById('btn-tap').addEventListener('click', _onClick);
+
+function setTapBtn(state) {
+  const btn = document.getElementById('btn-tap');
+  const labels = {
+    idle:      '⚔ タップ！',
+    ready:     '⚠ 構えろ…',
+    attacking: '⚡ 今だ！TAP！',
+  };
+  btn.className = (state === 'idle') ? '' : state;
+  btn.textContent = labels[state] || '⚔ タップ！';
+}
+
+// =============================================
+// RESULT SCREEN
+// =============================================
+function showResult() {
+  const avg = Math.round(game.rounds.reduce((a, b) => a + b, 0) / TOTAL_ROUNDS);
+  const r   = getRank(avg);
+
+  // ベスト更新チェック
+  const prevBest = loadBest();
+  const isNewRecord = prevBest == null || avg < prevBest;
+  if (isNewRecord) saveBest(avg);
+
+  // カード
+  const card = document.getElementById('result-card');
+  card.className = 'result-card' + (isNewRecord ? ' new-record' : '');
+
+  document.getElementById('result-avg').textContent  = avg;
+  document.getElementById('result-avg').style.color  = r.color;
+  document.getElementById('result-rank').textContent = r.label;
+  document.getElementById('result-rank').style.color = r.color;
+  document.getElementById('result-new-record').style.display = isNewRecord ? '' : 'none';
+
+  // 内訳
+  const bd = document.getElementById('breakdown');
+  bd.innerHTML = '<div class="breakdown-title">ラウンド内訳</div>';
+  game.rounds.forEach((ms, i) => {
+    const type = game.roundType[i];
+    const div = document.createElement('div');
+    div.className = 'breakdown-row';
+    const labelMap = { ok: ms + ' ms', foul: 'フライング (999ms)', timeout: 'タイムオーバー (999ms)' };
+    const colorMap = { ok: 'ok', foul: 'foul', timeout: 'timeout' };
+    div.innerHTML = `
+      <span class="breakdown-round">第 ${i + 1} ラウンド</span>
+      <span class="breakdown-time ${colorMap[type]}">${escHtml(labelMap[type])}</span>
+    `;
+    bd.appendChild(div);
+  });
+
+  // 平均行
+  const avgRow = document.createElement('div');
+  avgRow.className = 'breakdown-row';
+  avgRow.style.borderTop = '1px solid #222';
+  avgRow.style.paddingTop = '8px';
+  avgRow.style.marginTop  = '4px';
+  avgRow.innerHTML = `
+    <span class="breakdown-round" style="color:#aaa;">平均</span>
+    <span class="breakdown-time ok" style="color:${r.color};">${avg} ms</span>
+  `;
+  bd.appendChild(avgRow);
+
+  showScreen('screen-result');
+}
+
+// =============================================
+// RESULT BUTTONS
+// =============================================
+document.getElementById('btn-register').addEventListener('click', async () => {
+  const name = document.getElementById('input-name').value.trim() || '名無し';
+  const avg  = Math.round(game.rounds.reduce((a, b) => a + b, 0) / TOTAL_ROUNDS);
+  const r    = getRank(avg);
+
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true;
+  btn.textContent = '登録中…';
+
+  try {
+    await fbPush(RANKINGS_PATH, {
+      name,
+      score:     avg,
+      rank:      r.rank,
+      rounds:    game.rounds,
+      timestamp: Date.now(),
+    });
+    btn.textContent = '✅ 登録しました！';
+    btn.style.borderColor = '#44ff88';
+    btn.style.color       = '#44ff88';
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '❌ 登録失敗。再試行';
+  }
+});
+
+document.getElementById('btn-retry').addEventListener('click', () => {
+  document.getElementById('btn-register').disabled    = false;
+  document.getElementById('btn-register').textContent = '📤 ランキングに登録';
+  document.getElementById('btn-register').style.borderColor = '';
+  document.getElementById('btn-register').style.color       = '';
+  startGame();
+});
+
+document.getElementById('btn-to-title').addEventListener('click', () => {
+  document.getElementById('btn-register').disabled    = false;
+  document.getElementById('btn-register').textContent = '📤 ランキングに登録';
+  document.getElementById('btn-register').style.borderColor = '';
+  document.getElementById('btn-register').style.color       = '';
+  initTitle();
+  showScreen('screen-title');
+});
+
+// =============================================
+// RANKING SCREEN
+// =============================================
+async function loadRanking() {
+  const listEl = document.getElementById('ranking-list');
+  listEl.innerHTML = '<div class="ranking-empty">読み込み中…</div>';
+
+  try {
+    const all = await fbRead(RANKINGS_PATH);
+    if (!all) {
+      listEl.innerHTML = '<div class="ranking-empty">まだ記録がありません</div>';
+      return;
+    }
+
+    const entries = Object.values(all)
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 20);
+
+    if (entries.length === 0) {
+      listEl.innerHTML = '<div class="ranking-empty">まだ記録がありません</div>';
+      return;
+    }
+
+    const myName = document.getElementById('input-name').value.trim();
+    listEl.innerHTML = '';
+
+    entries.forEach((e, i) => {
+      const pos  = i + 1;
+      const isMe = myName && e.name === myName;
+      const r    = getRank(e.score);
+      const item = document.createElement('div');
+      item.className = 'rank-item' + (isMe ? ' mine' : '');
+      item.innerHTML = `
+        <div class="rank-pos ${pos <= 3 ? 'top' : ''}">${pos}</div>
+        <div class="rank-name">${escHtml(e.name)}</div>
+        <div class="rank-score">${e.score} ms</div>
+        <div class="rank-grade" style="color:${r.color};">${r.rank}</div>
+        <div class="rank-date">${formatDate(e.timestamp)}</div>
+      `;
+      listEl.appendChild(item);
+    });
+  } catch {
+    listEl.innerHTML = '<div class="ranking-empty">読み込みエラー</div>';
+  }
+}
+
+document.getElementById('btn-reload-ranking').addEventListener('click', loadRanking);
+
+document.getElementById('btn-ranking-back').addEventListener('click', () => {
+  showScreen('screen-title');
+});
+
+// =============================================
+// INIT
+// =============================================
+initTitle();
+</script>
+
+</body>
+</html>
