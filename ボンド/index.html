@@ -1289,6 +1289,13 @@ function startGameSSE() {
       } else {
         localPhase = 'bet-waiting';
       }
+    } else if (G.phase === 'pre-bet-action') {
+      const myP = myRole === 'p1' ? 1 : 2;
+      const senkouP = getSenkouP();
+      localPhase = myP === senkouP ? 'pre-bet-action' : 'pre-bet-waiting';
+      if (isCpuMode && senkouP === 2) {
+        setTimeout(cpuDoPreBetAction, 800);
+      }
     } else if (G.phase === 'p1-action' && myRole === 'p1') {
       if (G.turnIdx === 0) { sfxDeal(); startBGM(); }
       localPhase = 'my-turn';
@@ -1398,6 +1405,13 @@ async function endTurn() {
     if (isCpuMode && G.betActor === 2) {
       setTimeout(cpuDoBetting, 1000);
     }
+  } else if (G.phase === 'pre-bet-action') {
+    const myP = myRole === 'p1' ? 1 : 2;
+    const senkouP = getSenkouP();
+    localPhase = myP === senkouP ? 'pre-bet-action' : 'pre-bet-waiting';
+    if (isCpuMode && senkouP === 2) {
+      setTimeout(cpuDoPreBetAction, 800);
+    }
   } else if (isCpuMode) {
     if (G.phase === 'p1-action') {
       localPhase = 'my-turn';
@@ -1413,12 +1427,25 @@ async function endTurn() {
 }
 
 function goToBetting() {
-  // 全ターン終了後、ショーダウン前のベッティングフェーズ
-  G.phase = 'betting';
-  G.betActor = getSenkouP(); // 先攻がオープン
+  // 全ターン終了後、先攻がロブ/ダウトできるプレベットフェーズへ
+  G.phase = 'pre-bet-action';
   G.betLevel = 0;
   G.senkouBetTotal = 0;
   G.koukouBetTotal = 0;
+}
+
+async function proceedToBetting() {
+  sfxClick();
+  G.phase = 'betting';
+  G.betActor = getSenkouP();
+  const myP = myRole === 'p1' ? 1 : 2;
+  localPhase = G.betActor === myP ? 'betting' : 'bet-waiting';
+  selBetAmount = 1;
+  if (isCpuMode && G.betActor === 2) {
+    setTimeout(cpuDoBetting, 1000);
+  }
+  await syncGame();
+  render();
 }
 
 async function submitBet(action, amount) {
@@ -1559,7 +1586,7 @@ async function confirmRobSelf() {
   G.pendingRob = [];
   selSet = new Set();
   G.robDone = true;
-  localPhase = 'my-turn';
+  localPhase = G.phase === 'pre-bet-action' ? 'pre-bet-action' : 'my-turn';
   await syncGame();
   render();
 }
@@ -1603,7 +1630,7 @@ function proceedDoubtResolve() {
     selSet = new Set();
     localPhase = 'doubt-give';
   } else {
-    localPhase = 'my-turn';
+    localPhase = G.phase === 'pre-bet-action' ? 'pre-bet-action' : 'my-turn';
   }
   render();
 }
@@ -1620,7 +1647,7 @@ async function confirmDoubtGive() {
   setPHand(myP, newMyHand);
   setPHand(oppP_num, newOppHand);
   selSet = new Set();
-  localPhase = 'my-turn';
+  localPhase = G.phase === 'pre-bet-action' ? 'pre-bet-action' : 'my-turn';
   await syncGame();
   render();
 }
@@ -1868,6 +1895,30 @@ async function cpuTakeTurn() {
   render();
 }
 
+async function cpuDoPreBetAction() {
+  if (!isCpuMode || getSenkouP() !== 2) return;
+  await new Promise(r => setTimeout(r, 400));
+
+  if (!G.robDone && (G.p1LastDisc || []).length > 0 && cpuShouldRob()) {
+    cpuExecuteRob();
+    render();
+    await new Promise(r => setTimeout(r, 500));
+    await syncGame();
+  }
+
+  if (!G.doubtDone && !G.doubtUsed) {
+    const n = cpuDoubtDecision();
+    if (n >= 0) {
+      cpuExecuteDoubt(n);
+      render();
+      await new Promise(r => setTimeout(r, 600));
+      await syncGame();
+    }
+  }
+
+  await proceedToBetting();
+}
+
 async function cpuDoBetting() {
   if (!isCpuMode || G.betActor !== 2) return;
   const cpuEval = evaluateHand(G.p2Hand);
@@ -1971,6 +2022,8 @@ function render() {
     case 'waiting-guest': html += renderWaitingGuest(); break;
     case 'my-turn':       html += renderMyTurn(); break;
     case 'opp-turn':      html += renderOppTurn(); break;
+    case 'pre-bet-action':  html += renderPreBetAction(); break;
+    case 'pre-bet-waiting': html += renderPreBetWaiting(); break;
     case 'betting':       html += renderBetting(); break;
     case 'bet-waiting':   html += renderBetWaiting(); break;
     case 'rob-enemy':     html += renderRobEnemy(); break;
@@ -2047,6 +2100,78 @@ function renderLobby() {
     </div>
     ${showRules ? rulesHTML(true) : ''}
   </div>`;
+}
+
+function renderPreBetAction() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const myHand = pHand(myP);
+  const oppHand = pHand(oppP_num);
+  const oppDisc = pDisc(oppP_num);
+  const oppLastDisc = oppP_num === 1 ? (G.p1LastDisc||[]) : (G.p2LastDisc||[]);
+  const hasOppLastDisc = oppLastDisc.length > 0;
+
+  const robDisabled = !hasOppLastDisc;
+  const robBtn = G.robDone
+    ? `<button class="btn btn-done" disabled>ロブ済</button>`
+    : `<button class="btn btn-warn${robDisabled ? ' btn-gray' : ''}" data-action="do-rob" ${robDisabled ? 'disabled' : ''}>ロブ</button>`;
+  const doubtDisabled = G.doubtDone || G.doubtUsed;
+  const doubtBtn = doubtDisabled
+    ? `<button class="btn btn-done" disabled>${G.doubtUsed ? 'ダウト不可' : 'ダウト済'}</button>`
+    : `<button class="btn btn-danger" data-action="do-doubt">ダウト</button>`;
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML('ベッティング前 ＜先攻アクション＞')}
+    <div class="section-opp">
+      <div class="section-title">${isCpuMode ? 'CPU' : `相手 (プレイヤー${oppP_num})`}</div>
+      <div class="section-label">手札 (${oppHand.length}枚)</div>
+      ${cardsRowHTML(oppHand, { facedown: true })}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      ${cardsRowHTML(oppDisc)}
+    </div>
+    <div class="middle-area deck-info">デッキ: ${G.deck.length}枚</div>
+    <div class="section-self">
+      <div class="section-title">あなた (プレイヤー${myP}) ＜先攻＞</div>
+      <div class="section-label">手札 (${myHand.length}枚)</div>
+      ${cardsRowHTML(myHand)}
+    </div>
+    <div class="btn-row" style="padding:10px 8px;">
+      ${robBtn}
+      ${doubtBtn}
+      <button class="btn btn-primary" data-action="proceed-to-betting">ベッティングへ →</button>
+    </div>
+  `;
+}
+
+function renderPreBetWaiting() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const oppP_num = myP === 1 ? 2 : 1;
+  const myHand = pHand(myP);
+  const oppHand = pHand(oppP_num);
+  const oppDisc = pDisc(oppP_num);
+  const oppLabel = isCpuMode ? 'CPU' : `プレイヤー${oppP_num}`;
+
+  return `
+    ${topbarHTML()}
+    ${turnIndicatorHTML('ベッティング前 ＜先攻のアクション待ち＞')}
+    <div class="section-opp">
+      <div class="section-title">${oppLabel} ＜先攻＞</div>
+      <div class="section-label">手札 (${oppHand.length}枚)</div>
+      ${cardsRowHTML(oppHand, { facedown: true })}
+      <div class="section-label" style="margin-top:6px;">捨て札</div>
+      ${cardsRowHTML(oppDisc)}
+    </div>
+    <div class="middle-area deck-info">デッキ: ${G.deck.length}枚</div>
+    <div class="section-self">
+      <div class="section-title">あなた (プレイヤー${myP}) ＜後攻＞</div>
+      <div class="section-label">手札 (${myHand.length}枚)</div>
+      ${cardsRowHTML(myHand)}
+    </div>
+    <div class="btn-row" style="padding:10px 8px;">
+      <div style="color:#aaa;font-size:14px;padding:12px 0;">先攻プレーヤーのアクション待ちです...</div>
+    </div>
+  `;
 }
 
 function renderWaitingHost() {
@@ -2644,6 +2769,10 @@ async function handleAction(action, el = null) {
 
     case 'proceed-doubt-resolve':
       proceedDoubtResolve();
+      break;
+
+    case 'proceed-to-betting':
+      await proceedToBetting();
       break;
 
     case 'confirm-doubt-give':
