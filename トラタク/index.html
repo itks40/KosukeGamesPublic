@@ -214,21 +214,46 @@ label { font-size: 13px; color: #aac; display: block; margin-bottom: 4px; }
 .sel-btn.Q.selected { border-color: #8e44ad; background: #4a235a; color: #fff; }
 .sel-btn.K.selected { border-color: #2980b9; background: #1a4870; color: #fff; }
 
-/* ── ログ ── */
+/* ── ログテーブル ── */
 .log-area {
   background: rgba(0,0,0,0.3);
   border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 13px;
-  line-height: 1.7;
-  max-height: 200px;
+  max-height: 240px;
   overflow-y: auto;
 }
-.log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.log-entry:last-child { border-bottom: none; }
-.log-q { color: #7bb3ff; }
-.log-a-yes { color: #7fff9a; }
-.log-a-no { color: #ff9999; }
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.log-table thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(30,40,70,0.97);
+  color: #99aacc;
+  padding: 5px 6px;
+  text-align: center;
+  font-weight: normal;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 70px;
+}
+.log-table thead th.col-q { text-align: left; color: #7bb3ff; }
+.log-table tbody td {
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+.log-table tbody tr:last-child td { border-bottom: none; }
+.log-table tbody tr:hover td { background: rgba(255,255,255,0.03); }
+.log-table td.col-q { color: #aac; line-height: 1.4; }
+.log-table td.col-q .log-asker { color: #7bb3ff; font-weight: bold; display: block; }
+.log-table td.col-q .log-question { font-size: 11px; color: #99aacc; }
+.log-table td.col-ans { text-align: center; font-weight: bold; }
+.log-ans-yes { color: #7fff9a; }
+.log-ans-no { color: #ff8888; }
+.log-ans-self { color: rgba(255,255,255,0.2); font-weight: normal; }
 
 /* ── フェーズ表示 ── */
 .phase-banner {
@@ -449,6 +474,7 @@ let sseGame = null;
 let G = {};                // サーバー同期ゲーム状態
 let errorMsg = '';
 let connected = false;
+let cpuTickRunning = false; // 並列 cpuTick 防止フラグ
 
 // 質問選択用ローカル状態
 let selCard = null;   // 'J'|'Q'|'K'
@@ -534,7 +560,18 @@ function normalizeG(g) {
       e ? { ...e, answers: normalizeArray(e.answers) } : e
     ),
     roundResults: g.roundResults ? normalizeArray(g.roundResults) : null,
-    forcedCallResponses: g.forcedCallResponses || {},
+    forcedCallResponses: (() => {
+      const r = g.forcedCallResponses;
+      if (!r) return {};
+      // Firebase may return {"1":"fold","2":"fold"} as [null,"fold","fold"]
+      // Convert array form back to object, dropping null slots
+      if (Array.isArray(r)) {
+        const obj = {};
+        r.forEach((v, i) => { if (v != null) obj[String(i)] = v; });
+        return obj;
+      }
+      return r;
+    })(),
     callResponses: g.callResponses || {},
     cpuPlayers: g.cpuPlayers ? [0,1,2].map(i => g.cpuPlayers[i] === true) : [false, false, false],
   };
@@ -614,7 +651,7 @@ async function submitQuestion(cardType, count, asPlayer = myRole) {
       questionCount: newCount,
       log: newLog,
       forcedCallResponses: {},
-      forcedCallQuestionerRef: myRole, // 最後の質問者を優先度基準とする
+      forcedCallQuestionerRef: nextQuestioner, // 次の質問者を優先度基準とする
     };
   } else {
     G = {
@@ -658,9 +695,7 @@ async function respondCall(playerIdx, response) {
   if (String(playerIdx) in (G.callResponses || {})) return; // 二重送信防止
   try {
     await fbPatch(`/rooms/${roomId}/game/callResponses`, { [String(playerIdx)]: response });
-    if (response === 'call') {
-      await fbWrite(`/rooms/${roomId}/game/callers`, [...G.callers, playerIdx]);
-    }
+    // callers の即時書き込みはレース条件を起こすため、allResponded ブロックで再構築する
 
     // ローカルGを即更新して画面を反映
     const newCallers = response === 'call' ? [...G.callers, playerIdx] : G.callers;
@@ -675,8 +710,14 @@ async function respondCall(playerIdx, response) {
 
     if (allResponded && latestGame.phase === 'call-response') {
       const qIdx = latestGame.questionerIdx;
-      const sortedCallers = [...latestGame.callers].sort((a, b) => getPriority(b, qIdx) - getPriority(a, qIdx));
-      await fbPatch(`/rooms/${roomId}/game`, { phase: 'call-declare', declareOrder: sortedCallers, callDeclarations: [] });
+      // callResponseOrder に含まれない初期コール者 + call応答した人を集めて callers を再構築
+      // （fbWrite を使わないことでレース条件を回避）
+      const respOrderSet = new Set(latestGame.callResponseOrder);
+      const initialCallers = latestGame.callers.filter(i => !respOrderSet.has(i));
+      const respondedCallers = latestGame.callResponseOrder.filter(i => latestResponses[String(i)] === 'call');
+      const allCallers = [...initialCallers, ...respondedCallers];
+      const sortedCallers = [...allCallers].sort((a, b) => getPriority(b, qIdx) - getPriority(a, qIdx));
+      await fbPatch(`/rooms/${roomId}/game`, { phase: 'call-declare', callers: allCallers, declareOrder: sortedCallers, callDeclarations: [] });
     }
   } catch(e) { errorMsg = '通信エラー: ' + e.message; render(); }
 }
@@ -737,7 +778,7 @@ function computeCallResults(declarations, gameState) {
 // ── 強制コール/フォルド応答（全員2回質問後） ──
 async function forcedCallRespond(playerIdx, response) {
   if (G.phase !== 'forced-call') return;
-  if (String(playerIdx) in (G.forcedCallResponses || {})) return; // 二重送信防止
+  if ((G.forcedCallResponses || {})[String(playerIdx)] != null) return; // 二重送信防止
   try {
   // ローカルGを即更新してボタンを消す
   G = { ...G, forcedCallResponses: { ...G.forcedCallResponses, [String(playerIdx)]: response } };
@@ -750,7 +791,7 @@ async function forcedCallRespond(playerIdx, response) {
   const responses = latestGame.forcedCallResponses || {};
 
   // 全員(3人)が応答したか
-  if ([0, 1, 2].every(i => String(i) in responses) && latestGame.phase === 'forced-call') {
+  if ([0, 1, 2].every(i => responses[String(i)] != null) && latestGame.phase === 'forced-call') {
     const callers = [0, 1, 2].filter(i => responses[String(i)] === 'call');
 
     if (callers.length === 0) {
@@ -819,6 +860,8 @@ async function nextRound() {
 // ══════════════════════════════════════════
 async function cpuTick() {
   if (myRole !== 0 || !roomId) return;
+  if (cpuTickRunning) return; // 並列実行を防止
+  cpuTickRunning = true;
   const cpus = G.cpuPlayers || [false, false, false];
   try {
     if (G.phase === 'question') {
@@ -832,13 +875,14 @@ async function cpuTick() {
     } else if (G.phase === 'forced-call') {
       const responses = G.forcedCallResponses || {};
       for (let i = 0; i < 3; i++) {
-        if (cpus[i] && !(String(i) in responses)) await cpuDoForcedCallRespond(i);
+        if (cpus[i] && responses[String(i)] == null) await cpuDoForcedCallRespond(i);
       }
     } else if (G.phase === 'round-end' && cpus[0]) {
       await new Promise(r => setTimeout(r, 1000));
       await nextRound();
     }
   } catch(e) { console.error('cpuTick error:', e); }
+  finally { cpuTickRunning = false; }
 }
 
 async function cpuDoQuestion(playerIdx) {
@@ -860,7 +904,7 @@ async function cpuDoDeclare(playerIdx) {
 }
 
 async function cpuDoForcedCallRespond(playerIdx) {
-  await new Promise(r => setTimeout(r, 600));
+  await new Promise(r => setTimeout(r, 3000)); // 人間プレイヤーが操作できるよう長めに待機
   await forcedCallRespond(playerIdx, 'fold');
 }
 
@@ -1012,17 +1056,17 @@ async function joinRoom(code, role) {
 // ══════════════════════════════════════════
 function renderLeaveButton() {
   return `<div style="text-align:right;padding:4px 12px 0;">
-    <button class="btn btn-gray" style="font-size:11px;padding:3px 10px;" onclick="leaveRoom()">🚪 退室</button>
+    <button class="btn" style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,0.1);color:#aac;border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;" onclick="leaveRoom()">退室</button>
   </div>`;
 }
 
-const VERSION = 'v0.1.5';
+const VERSION = 'v0.1.8';
 
 function renderTopbar() {
   const dot = connected
     ? '<span class="conn-dot on"></span>オンライン'
     : '<span class="conn-dot off"></span>オフライン';
-  const round = G.roundNum ? `Round ${G.roundNum}` : '';
+  const round = G.phase === 'game-over' ? 'GAME OVER' : (G.roundNum ? `Round ${G.roundNum}` : '');
   return `<div class="topbar">
     <span class="topbar-title">トラタク</span>
     <span style="font-size:12px;color:#aac">${round}</span>
@@ -1065,20 +1109,37 @@ function renderHiddenCards(revealed = false) {
 
 function renderLog() {
   if (!G.log || G.log.length === 0) return '';
-  const entries = [...G.log].reverse().map(e => {
-    const answers = G.playerNames.map((n, i) => {
-      if (i === e.askerIdx) return null;
-      const has = e.answers[i] >= e.count;
-      return `<span class="${has ? 'log-a-yes' : 'log-a-no'}">${n}: ${has ? 'はい' : 'いいえ'}</span>`;
-    }).filter(Boolean).join(' ／ ');
-    return `<div class="log-entry">
-      <span class="log-q">${e.askerName}:「${e.cardType}を${e.count}枚以上持っていますか？」</span><br>
-      ${answers}
-    </div>`;
+  const names = G.playerNames || [];
+
+  // ヘッダー：質問列 + 各プレーヤー列
+  const thCells = names.map(n => {
+    const label = n.length > 6 ? n.slice(0, 5) + '…' : n;
+    return `<th>${label}</th>`;
   }).join('');
+  const header = `<tr><th class="col-q">質問</th>${thCells}</tr>`;
+
+  // 行：新しい順（最新が上）
+  const rows = [...G.log].reverse().map(e => {
+    const qCell = `<td class="col-q">
+      <span class="log-asker">${e.askerName}</span>
+      <span class="log-question">${e.cardType} を ${e.count}枚以上？</span>
+    </td>`;
+    const ansCells = names.map((n, i) => {
+      if (i === e.askerIdx) return `<td class="col-ans log-ans-self">ー</td>`;
+      const has = e.answers[i] >= e.count;
+      return `<td class="col-ans ${has ? 'log-ans-yes' : 'log-ans-no'}">${has ? 'はい' : 'いいえ'}</td>`;
+    }).join('');
+    return `<tr>${qCell}${ansCells}</tr>`;
+  }).join('');
+
   return `<div class="section">
     <div class="section-title">質問ログ</div>
-    <div class="log-area">${entries}</div>
+    <div class="log-area">
+      <table class="log-table">
+        <thead>${header}</thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
   </div>`;
 }
 
@@ -1087,34 +1148,43 @@ function renderQuestionPhase() {
   const qName = G.playerNames[G.questionerIdx];
   const qCounts = G.questionCount || [0, 0, 0];
 
+  // 質問回数インジケーター
+  const qCountBar = G.playerNames.map((n, i) => {
+    const done = qCounts[i];
+    const dots = [0,1].map(d => `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${d < done ? '#5599ee' : 'rgba(255,255,255,0.2)'};margin:0 2px;"></span>`).join('');
+    return `<div style="text-align:center;flex:1;font-size:11px;color:${i === myRole ? '#7fff9a' : '#aac'};">${n}<br>${dots}</div>`;
+  }).join('');
+
   let turnInfo = `<div class="section">
     <div class="phase-banner">質問フェーズ</div>
-    <div style="padding:8px 12px;font-size:13px;color:#aac;">
-      ${G.playerNames.map((n, i) => `${n}: ${qCounts[i]}/2回`).join(' ／ ')}
-    </div>
+    <div style="display:flex;padding:8px 12px 4px;">${qCountBar}</div>
     <div class="turn-label">🎤 ${qName} が質問中${G.questionerIdx === G.firstQuestionerIdx && qCounts[G.questionerIdx] === 0 ? ' <span style="font-size:11px;background:rgba(255,215,0,0.2);color:#ffd700;border-radius:4px;padding:1px 6px;">親</span>' : ''}</div>
   </div>`;
 
   let actionArea = '';
   if (isQuestioner) {
-    // カード選択
+    // カード選択（選択中は背景色・チェックマーク付き）
     const cardBtns = CARD_TYPES.map(t =>
-      `<button class="sel-btn ${t}${selCard === t ? ' selected' : ''}" onclick="selCard='${t}';render()">${t}</button>`
+      `<button class="sel-btn ${t}${selCard === t ? ' selected' : ''}" onclick="selCard='${t}';render()">${t}${selCard === t ? ' ✓' : ''}</button>`
     ).join('');
     // 枚数選択
     const countBtns = [1, 2, 3].map(n =>
-      `<button class="sel-btn${selCount === n ? ' selected' : ''}" onclick="selCount=${n};render()">${n}枚</button>`
+      `<button class="sel-btn${selCount === n ? ' selected' : ''}" onclick="selCount=${n};render()">${n}枚${selCount === n ? ' ✓' : ''}</button>`
     ).join('');
     const canAsk = selCard !== null && selCount !== null;
+    const preview = canAsk
+      ? `<div style="padding:6px 0 2px;font-size:14px;color:#a0c4ff;text-align:center;">「<strong>${selCard}</strong>を<strong>${selCount}</strong>枚以上持っていますか？」</div>`
+      : `<div style="padding:6px 0 2px;font-size:13px;color:#667;text-align:center;">カードと枚数を選択してください</div>`;
     actionArea = `<div class="section">
-      <div class="section-title">質問する</div>
-      <div style="margin-bottom:8px;font-size:13px;color:#aac;">カードの種類</div>
+      <div class="section-title">質問する（あなたのターン）</div>
+      <div style="margin-bottom:6px;font-size:12px;color:#88aadd;">カードの種類</div>
       <div class="sel-group">${cardBtns}</div>
-      <div style="margin-bottom:8px;font-size:13px;color:#aac;">枚数</div>
+      <div style="margin-bottom:6px;font-size:12px;color:#88aadd;">枚数</div>
       <div class="sel-group">${countBtns}</div>
+      ${preview}
       <div class="btn-row">
         <button class="btn btn-primary btn-big" ${canAsk ? '' : 'disabled'} onclick="doSubmitQuestion()">
-          「${selCard || '?'}を${selCount || '?'}枚以上持っていますか？」と聞く
+          質問する
         </button>
       </div>
     </div>`;
@@ -1170,9 +1240,13 @@ function renderCallResponsePhase() {
       <div class="phase-banner">あなたの回答: ${myResp === 'call' ? '📣 コール' : '🏳️ フォルド'}</div>
       <div style="padding:8px 12px;font-size:13px;color:#aac;">他のプレーヤーの応答を待っています…</div>
     </div>`;
-  } else {
+  } else if (waiting !== undefined) {
     actionHtml = `<div class="section">
       <div class="phase-banner">${G.playerNames[waiting]} の応答を待っています…</div>
+    </div>`;
+  } else {
+    actionHtml = `<div class="section">
+      <div class="phase-banner">全員の応答を集計中…</div>
     </div>`;
   }
 
@@ -1202,13 +1276,16 @@ function renderCallDeclarePhase() {
       </button>`
     ).join('');
 
+    const guessPreview = total > 0
+      ? guessCards.map(c => `<div class="card-chip ${c}" style="display:inline-block;">${c}</div>`).join('')
+      : '<span style="color:#667;font-size:13px;">まだ選択されていません</span>';
     actionHtml = `<div class="section">
-      <div class="section-title">伏せカード3枚を宣言（計${total}/3枚選択中）</div>
+      <div class="section-title">伏せカード3枚を宣言（${total}/3枚）</div>
       <div class="sel-group">${cardBtns}</div>
-      <div style="font-size:12px;color:#aac;padding:4px 0;">タップで追加、3枚選んだら宣言できます</div>
-      ${total > 0 ? `<div style="padding:6px 0;font-size:14px;">選択中: ${guessCards.join(' / ')}</div>` : ''}
+      <div style="font-size:12px;color:#aac;padding:4px 0;">タップで追加・削除、3枚で宣言できます</div>
+      <div style="padding:8px 0;display:flex;gap:8px;min-height:52px;align-items:center;">${guessPreview}</div>
       <button class="btn btn-warn btn-big" ${total === 3 ? '' : 'disabled'} onclick="doDeclareGuess()">
-        📢 カード宣言する
+        📢 ${total === 3 ? `「${guessCards.join(' / ')}」と宣言する` : 'カード3枚を選択してください'}
       </button>
     </div>`;
   } else if (alreadyDeclared) {
@@ -1246,19 +1323,19 @@ function renderForcedCallPhase() {
   }).join('');
 
   const actionHtml = myResponded
-    ? `<div class="phase-banner">回答済み（残り${waitingCount}人）</div>`
-    : `<div class="section">
-        <div class="section-title">あなたの選択</div>
+    ? `<div class="section"><div class="phase-banner">✅ 回答済み（他のプレイヤーを待っています… 残り${waitingCount}人）</div></div>`
+    : `<div class="section" style="background:rgba(192,57,43,0.12);border-left:3px solid #e74c3c;">
+        <div class="section-title" style="color:#ff9999;">⚠️ あなたの選択が必要です</div>
         <div class="btn-row">
-          <button class="btn btn-danger btn-big" onclick="doForcedCallRespond('call')">🔔 コール（伏せカードを当てにいく）</button>
-          <button class="btn btn-fold btn-big" onclick="doForcedCallRespond('fold')">🏳️ フォルド（降りる）</button>
+          <button class="btn btn-danger btn-big" onclick="doForcedCallRespond('call')">🔔 コール（伏せカードを当てにいく）<br><span style="font-size:11px;font-weight:normal;">正解: +2pt / 不正解: -1pt</span></button>
+          <button class="btn btn-fold btn-big" onclick="doForcedCallRespond('fold')">🏳 フォルド（降りる）<br><span style="font-size:11px;font-weight:normal;">点数変動なし ±0pt</span></button>
         </div>
       </div>`;
 
   return renderTopbar() + renderLeaveButton() + renderScorebar() + renderHand() + renderHiddenCards(false)
-    + `<div class="section">
-        <div class="phase-banner highlight">⏱️ 全員が2回質問しました！</div>
-        <div style="padding:8px 12px;font-size:13px;color:#aac;">コールするか、フォルドするか選んでください。</div>
+    + `<div class="section" style="background:rgba(255,215,0,0.08);border-left:3px solid #ffd700;">
+        <div class="phase-banner highlight">⏱️ 全員が2回質問しました！コール or フォルド</div>
+        <div style="padding:8px 12px;font-size:13px;color:#ffd700;font-weight:bold;">伏せカードがわかった人は「コール」を選んでください</div>
         <div style="padding:0 12px 8px;">${statusRows}</div>
       </div>`
     + actionHtml + renderLog();
@@ -1285,9 +1362,10 @@ function renderRoundEnd() {
   }).join('');
 
   const isHost = myRole === 0;
+  const isLastRound = (G.roundNum || 1) >= 3;
   const nextBtn = isHost
-    ? `<button class="btn btn-success btn-big" onclick="doNextRound()">次のラウンドへ ▶</button>`
-    : `<div class="phase-banner">プレーヤー1（${G.playerNames[0]}）が次のラウンドを開始するのを待っています…</div>`;
+    ? `<button class="btn ${isLastRound ? 'btn-primary' : 'btn-success'} btn-big" onclick="doNextRound()">${isLastRound ? '🏆 ゲーム終了へ' : '次のラウンドへ ▶'}</button>`
+    : `<div class="phase-banner">プレーヤー1（${G.playerNames[0]}）が${isLastRound ? 'ゲームを終了する' : '次のラウンドを開始する'}のを待っています…</div>`;
 
   return renderTopbar() + renderScorebar()
     + `<div class="section">
@@ -1387,8 +1465,10 @@ function renderGameOver() {
   ).join('');
 
   return renderTopbar()
-    + `<div class="section" style="text-align:center;padding:30px 12px 10px;">
+    + renderScorebar()
+    + `<div class="section" style="text-align:center;padding:24px 12px 10px;">
         <div style="font-size:28px;margin-bottom:8px;">🏆 ゲーム終了</div>
+        <div style="font-size:13px;color:#88aadd;">3ラウンド終了</div>
       </div>`
     + `<div class="section">${rows}</div>`
     + `<div class="section">
@@ -1431,6 +1511,7 @@ function doSetName() {
   const val = document.getElementById('inp-name')?.value.trim();
   if (!val) { errorMsg = '名前を入力してください'; render(); return; }
   myName = val;
+  errorMsg = '';
   lobbyPhase = 'menu';
   render();
 }
