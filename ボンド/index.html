@@ -662,6 +662,10 @@ async function fbRead(path) {
   return await res.json();
 }
 
+async function fbDelete(path) {
+  await fetch(`${FIREBASE_DB_URL}${path}.json`, { method: 'DELETE' });
+}
+
 function fbListen(path, onPut, onPatch) {
   const es = new EventSource(`${FIREBASE_DB_URL}${path}.json`);
   es.addEventListener('put', e => {
@@ -1199,7 +1203,7 @@ async function createRoom() {
     sessionStorage.setItem('bond_room', roomId);
     sessionStorage.setItem('bond_role', 'p1');
 
-    await fbWrite(`/rooms/${roomId}`, { p1Ready: true, p2Ready: false, p1Name: myPlayerName || 'プレイヤー1', game: null });
+    await fbWrite(`/rooms/${roomId}`, { p1Ready: true, p2Ready: false, p1Name: myPlayerName || 'プレイヤー1', game: null, createdAt: Date.now() });
     setConnStatus(true);
 
     // Poll for P2 joining every 1 second
@@ -1275,8 +1279,17 @@ async function loadAvailableRooms() {
   try {
     const rooms = await fbRead('/rooms');
     if (!rooms) { availableRooms = []; render(); return; }
+    const now = Date.now();
+    const EXPIRE_MS = 5 * 60 * 1000; // 5分
+    // 期限切れ部屋（5分以上経過 かつ ゲーム未開始）を削除
+    const expiredIds = Object.entries(rooms)
+      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready && r.createdAt && (now - r.createdAt) > EXPIRE_MS)
+      .map(([id]) => id);
+    for (const id of expiredIds) {
+      fbDelete(`/rooms/${id}`).catch(() => {});
+    }
     availableRooms = Object.entries(rooms)
-      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready)
+      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready && !expiredIds.includes(id))
       .map(([id, r]) => ({ id, p1Name: r.p1Name || 'プレイヤー1' }));
     render();
   } catch(e) {
