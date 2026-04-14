@@ -940,8 +940,16 @@ function inferHiddenPossibilities(cpuPlayerIdx) {
 
 async function cpuDoQuestion(playerIdx) {
   await new Promise(r => setTimeout(r, 800));
-  const cardType = CARD_TYPES[Math.floor(Math.random() * 3)];
-  const count = [1, 2][Math.floor(Math.random() * 2)];
+  // すでに聞かれた (cardType, count) の組み合わせを除外
+  const asked = new Set((G.log || []).map(e => `${e.cardType}:${e.count}`));
+  const choices = [];
+  for (const ct of CARD_TYPES) {
+    for (const n of [1, 2]) {
+      if (!asked.has(`${ct}:${n}`)) choices.push([ct, n]);
+    }
+  }
+  if (choices.length === 0) return; // 全組み合わせ済み（通常起こらない）
+  const [cardType, count] = choices[Math.floor(Math.random() * choices.length)];
   await submitQuestion(cardType, count, playerIdx);
 }
 
