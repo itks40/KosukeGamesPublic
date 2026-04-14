@@ -612,8 +612,26 @@ function updateLocalPhase() {
   } else if (G.phase === 'round-end') {
     localPhase = 'round-end';
   } else if (G.phase === 'game-over') {
+    if (localPhase !== 'game-over') saveMatchHistory();
     localPhase = 'game-over';
   }
+}
+
+// ── 対戦戦績を localStorage に保存 ──
+function saveMatchHistory() {
+  try {
+    const sorted = [0, 1, 2]
+      .map(i => ({ name: G.playerNames[i], score: G.playerScores[i], isSelf: i === myRole }))
+      .sort((a, b) => b.score - a.score);
+    const entry = {
+      date: new Date().toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }),
+      players: sorted,
+    };
+    const history = JSON.parse(localStorage.getItem('tt_history') || '[]');
+    history.unshift(entry);
+    if (history.length > 5) history.length = 5; // 最大5件
+    localStorage.setItem('tt_history', JSON.stringify(history));
+  } catch(e) { /* localStorage 無効環境では無視 */ }
 }
 
 // ── 質問送信 ──
@@ -1432,6 +1450,28 @@ function renderRoundEnd() {
     + renderLog();
 }
 
+function renderMatchHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem('tt_history') || '[]');
+    if (history.length === 0) return '';
+    const medals = ['🥇', '🥈', '🥉'];
+    const rows = history.map(entry => {
+      const playerCells = entry.players.map((p, rank) =>
+        `<td style="padding:3px 6px;text-align:center;${p.isSelf ? 'color:#7fff9a;font-weight:bold;' : 'color:#aac;'}">${medals[rank]}${p.name}<br><span style="font-size:10px;">${p.score}pt</span></td>`
+      ).join('');
+      return `<tr><td style="padding:3px 6px;font-size:11px;color:#667;white-space:nowrap;">${entry.date}</td>${playerCells}</tr>`;
+    }).join('');
+    return `<div class="section" style="margin-top:8px;">
+      <div class="section-title" style="margin-bottom:6px;">直近の対戦結果</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  } catch(e) { return ''; }
+}
+
 function renderLobby() {
   if (lobbyPhase === 'enter-name') {
     return `<div class="lobby-title">トライアングル<br>タクティクス</div>
@@ -1455,7 +1495,8 @@ function renderLobby() {
         ゲームには3人必要です。<br>
         1人が部屋を作り、残りの2人がコードで入室します。<br>
         人数が足りない場合は、部屋を作った後にCPUプレーヤーを追加できます。
-      </div>`;
+      </div>
+      ${renderMatchHistory()}`;
   }
   if (lobbyPhase === 'join') {
     setTimeout(fetchAndShowRooms, 50);
