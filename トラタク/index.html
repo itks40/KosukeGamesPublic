@@ -1617,6 +1617,14 @@ async function fetchAndShowRooms() {
   try {
     const rooms = await fbRead('/rooms');
     if (!rooms) { el.innerHTML = '<div style="color:#aac;font-size:13px;padding:8px 0;">部屋がありません</div>'; return; }
+    // 5分経過かつゲーム未開始の部屋を削除
+    await Promise.all(Object.entries(rooms).map(([id, room]) => {
+      const stale = room.createdAt && Date.now() - room.createdAt > 5 * 60 * 1000;
+      const notStarted = !room.game || room.game.phase == null;
+      if (stale && notStarted) return fbWrite(`/rooms/${id}`, null).catch(() => {});
+      return Promise.resolve();
+    }));
+
     const items = Object.entries(rooms)
       .filter(([, room]) => {
         if (!room.players || !room.players[0]) return false;
