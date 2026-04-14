@@ -885,6 +885,41 @@ async function cpuTick() {
   finally { cpuTickRunning = false; }
 }
 
+// ログと自分の手札からhidden cardの候補を絞り込む
+// answers[i] は実際の枚数が入っているため、質問されたカード種は hidden 枚数が確定する
+function inferHiddenPossibilities(cpuPlayerIdx) {
+  const hand = G.hands[cpuPlayerIdx] || [];
+  const myCounts = {};
+  for (const ct of CARD_TYPES) myCounts[ct] = hand.filter(c => c === ct).length;
+
+  const knownHidden = {};
+  for (const e of (G.log || [])) {
+    if (!(e.cardType in knownHidden)) {
+      const total = (e.answers || []).reduce((s, a) => s + a, 0);
+      knownHidden[e.cardType] = 4 - total;
+    }
+  }
+
+  const possibilities = [];
+  for (let j = 0; j <= 3; j++) {
+    for (let q = 0; q <= 3 - j; q++) {
+      const k = 3 - j - q;
+      const counts = { J: j, Q: q, K: k };
+      let valid = true;
+      for (const ct of CARD_TYPES) {
+        if (ct in knownHidden) {
+          if (counts[ct] !== knownHidden[ct]) { valid = false; break; }
+        } else {
+          // 自分の手札分 + hidden が 4 を超えてはいけない
+          if (myCounts[ct] + counts[ct] > 4) { valid = false; break; }
+        }
+      }
+      if (valid) possibilities.push({ J: j, Q: q, K: k });
+    }
+  }
+  return possibilities;
+}
+
 async function cpuDoQuestion(playerIdx) {
   await new Promise(r => setTimeout(r, 800));
   const cardType = CARD_TYPES[Math.floor(Math.random() * 3)];
@@ -894,18 +929,31 @@ async function cpuDoQuestion(playerIdx) {
 
 async function cpuDoRespondCall(playerIdx) {
   await new Promise(r => setTimeout(r, 600));
-  await respondCall(playerIdx, 'fold');
+  const poss = inferHiddenPossibilities(playerIdx);
+  // 候補が1つ = 100%確定、コール
+  const response = poss.length === 1 ? 'call' : 'fold';
+  await respondCall(playerIdx, response);
 }
 
 async function cpuDoDeclare(playerIdx) {
   await new Promise(r => setTimeout(r, 600));
-  const guess = [0,1,2].map(() => CARD_TYPES[Math.floor(Math.random() * 3)]);
+  const poss = inferHiddenPossibilities(playerIdx);
+  let guess;
+  if (poss.length === 1) {
+    const h = poss[0];
+    guess = [...Array(h.J).fill('J'), ...Array(h.Q).fill('Q'), ...Array(h.K).fill('K')];
+  } else {
+    guess = [0, 1, 2].map(() => CARD_TYPES[Math.floor(Math.random() * 3)]);
+  }
   await declareGuess(playerIdx, guess);
 }
 
 async function cpuDoForcedCallRespond(playerIdx) {
   await new Promise(r => setTimeout(r, 3000)); // 人間プレイヤーが操作できるよう長めに待機
-  await forcedCallRespond(playerIdx, 'fold');
+  const poss = inferHiddenPossibilities(playerIdx);
+  // 候補が1つ = 100%確定、コール
+  const response = poss.length === 1 ? 'call' : 'fold';
+  await forcedCallRespond(playerIdx, response);
 }
 
 // ── 退室 ──
@@ -1405,7 +1453,8 @@ function renderLobby() {
       </div>
       <div class="info-box">
         ゲームには3人必要です。<br>
-        1人が部屋を作り、残りの2人がコードで入室します。
+        1人が部屋を作り、残りの2人がコードで入室します。<br>
+        人数が足りない場合は、部屋を作った後にCPUプレーヤーを追加できます。
       </div>`;
   }
   if (lobbyPhase === 'join') {
