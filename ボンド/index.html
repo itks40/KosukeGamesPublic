@@ -922,6 +922,30 @@ function getRecentOpponents() {
   try { return JSON.parse(localStorage.getItem('bond_recent_opponents') || '[]'); } catch(e) { return []; }
 }
 
+// 接続ステータス表示は廃止済み（呼び出し箇所との互換用スタブ）
+function setConnStatus(ok) {}
+
+// ゲーム結果をlocalStorageに記録
+function recordGameStats() {
+  const myP = myRole === 'p1' ? 1 : 2;
+  const myChips = pChips(myP);
+  const oppChips = pChips(myP === 1 ? 2 : 1);
+  const result = myChips > oppChips ? 'win' : (myChips < oppChips ? 'lose' : 'draw');
+  const stats = getGameStats();
+  stats.total++;
+  stats[result]++;
+  localStorage.setItem('bond_stats', JSON.stringify(stats));
+}
+
+function getGameStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem('bond_stats') || '{}');
+    return { total: s.total||0, win: s.win||0, lose: s.lose||0, draw: s.draw||0 };
+  } catch(e) {
+    return { total: 0, win: 0, lose: 0, draw: 0 };
+  }
+}
+
 // card id: 0-23 = suit*6+rankIdx, 24-25 = jokers
 function cardSuit(id) { return Math.floor(id / 6); }
 function cardRankIdx(id) { return id % 6; }
@@ -1656,6 +1680,7 @@ function checkGameOver() {
 async function nextMatch() {
   if (checkGameOver()) {
     recordRecentOpponent();
+    recordGameStats();
     G.phase = 'game-over';
     localPhase = 'game-over';
     await syncGame();
@@ -2124,41 +2149,15 @@ function cardsRowHTML(cards, opts = {}) {
   }).join('')}</div>`;
 }
 
-// 相手の捨て札エリアHTML。前ターン捨て札を常に分離して表示し、canRob=true のときロブ対象を金色ハイライト
+// 相手の捨て札エリアHTML。ロブ対象カード（前ターン捨て札）にROBバッジを付けて1グループで表示
 function oppDiscHTML(oppDisc, oppLastDisc, canRob) {
   const robSet = new Set(oppLastDisc);
-  const lastDisc = oppDisc.filter(c => robSet.has(c));
-  const oldDisc = oppDisc.filter(c => !robSet.has(c));
-
-  let html = '';
-
-  // 前ターン捨て札を先に（目立つように）表示
-  if (lastDisc.length > 0) {
-    const labelColor = canRob ? '#ffd700' : '#ffaa44';
-    const labelText = canRob
-      ? `前ターン捨て札 (${lastDisc.length}枚) — ロブ対象です`
-      : `前ターン捨て札 (${lastDisc.length}枚)`;
-    html += `<div class="section-label" style="color:${labelColor};margin-bottom:4px;">${labelText}</div>`;
-    html += `<div class="card-row">${lastDisc.map(c => {
-      let cardHtml = cardHTML(c, {});
-      if (canRob) cardHtml = cardHtml.replace('class="card', 'class="card rob-target');
-      return cardHtml;
-    }).join('')}</div>`;
-  }
-
-  // 古い捨て札
-  if (oldDisc.length > 0) {
-    if (lastDisc.length > 0) {
-      html += `<div style="font-size:11px;color:#777;padding:2px 4px;margin-top:4px;">古い捨て札</div>`;
-    }
-    html += `<div class="card-row">${oldDisc.map(c => cardHTML(c, {})).join('')}</div>`;
-  }
-
-  if (oppDisc.length === 0) {
-    html += `<div class="card-row"></div>`;
-  }
-
-  return html;
+  if (oppDisc.length === 0) return `<div class="card-row"></div>`;
+  return `<div class="card-row">${oppDisc.map(c => {
+    let cardHtml = cardHTML(c, {});
+    if (robSet.has(c)) cardHtml = cardHtml.replace('class="card', 'class="card rob-target');
+    return cardHtml;
+  }).join('')}</div>`;
 }
 
 function topbarHTML() {
@@ -2260,27 +2259,34 @@ function renderLobby() {
 
   const recentOpps = getRecentOpponents();
   const recentHtml = recentOpps.length > 0 ? `
-    <div style="width:100%;margin-top:14px;">
-      <div style="font-size:12px;color:#aaa;margin-bottom:6px;text-align:left;">最近の対戦者</div>
+    <div style="width:100%;margin-top:6px;">
+      <div style="font-size:12px;color:#aaa;margin-bottom:4px;text-align:left;">最近の対戦者</div>
       ${recentOpps.map(o => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 2px;border-bottom:1px solid #1a3a1a;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;border-bottom:1px solid #1a3a1a;font-size:12px;">
           <span style="color:#ddd;">${o.name}</span>
           <span style="color:#666;font-size:11px;">${o.date}</span>
         </div>`).join('')}
     </div>` : '';
 
+  const stats = getGameStats();
+  const statsHtml = stats.total > 0 ? `
+    <div style="width:100%;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;text-align:left;">
+      <div style="font-size:12px;color:#aaa;margin-bottom:6px;">累計戦績 (${stats.total}回プレイ)</div>
+      <div style="display:flex;gap:16px;font-size:14px;font-weight:bold;">
+        <span style="color:#00ff88;">勝 ${stats.win}</span>
+        <span style="color:#ff4444;">負 ${stats.lose}</span>
+        <span style="color:#ffaa00;">引分 ${stats.draw}</span>
+      </div>
+    </div>` : '';
+
   return `<div class="title-screen">
     <h1>ボンド</h1>
     <div class="subtitle">2人対戦カードゲーム</div>
+    ${statsHtml}
     <input type="text" id="name-input" value="${myPlayerName}"
       placeholder="あなたの名前（省略可）" maxlength="12"
       style="width:100%;padding:10px 12px;border-radius:8px;border:2px solid #444;background:#0a2a18;color:#fff;font-size:16px;font-family:inherit;margin-bottom:14px;box-sizing:border-box;">
     <button class="btn btn-primary btn-big" data-action="create-room" ${firebaseNotSet ? 'disabled' : ''}>部屋を作る</button>
-    <div class="or-divider">または</div>
-    <div class="join-row">
-      <input type="text" id="room-input" placeholder="ルームコード" maxlength="6">
-      <button class="btn btn-info" data-action="join-room" ${firebaseNotSet ? 'disabled' : ''}>入室</button>
-    </div>
     <button class="btn btn-big" style="background:#5a2d82;color:#fff;margin-bottom:10px;" data-action="start-cpu">CPUと対戦</button>
     ${roomListHtml}
     ${reconnectHtml}
@@ -2459,23 +2465,15 @@ function renderOppTurn() {
   const oppLastDisc = oppP_num === 1 ? (G.p1LastDisc||[]) : (G.p2LastDisc||[]);
   const oppLabel = isCpuMode ? 'CPU' : `プレイヤー${oppP_num}`;
 
-  // 自分の前ターン捨て札（相手がロブ可能な対象）を分離して表示
+  // 自分の前ターン捨て札（相手がロブ可能な対象）にROBバッジを付けて1グループで表示
   const myLastDiscSet = new Set(myLastDisc);
-  const myLastDiscCards = myDisc.filter(c => myLastDiscSet.has(c));
-  const myOldDiscCards = myDisc.filter(c => !myLastDiscSet.has(c));
-  const myDiscSectionHTML = (() => {
-    let h = '';
-    if (myLastDiscCards.length > 0) {
-      h += `<div class="section-label" style="color:#ffaa44;margin-bottom:4px;">前ターン捨て札 (${myLastDiscCards.length}枚) — ロブ対象</div>`;
-      h += `<div class="card-row">${myLastDiscCards.map(c => cardHTML(c, {}).replace('class="card', 'class="card rob-target')).join('')}</div>`;
-    }
-    if (myOldDiscCards.length > 0) {
-      if (myLastDiscCards.length > 0) h += `<div style="font-size:11px;color:#777;padding:2px 4px;margin-top:4px;">古い捨て札</div>`;
-      h += `<div class="card-row">${myOldDiscCards.map(c => cardHTML(c, {})).join('')}</div>`;
-    }
-    if (myDisc.length === 0) h += `<div class="card-row"></div>`;
-    return h;
-  })();
+  const myDiscSectionHTML = myDisc.length === 0
+    ? `<div class="card-row"></div>`
+    : `<div class="card-row">${myDisc.map(c => {
+        let h = cardHTML(c, {});
+        if (myLastDiscSet.has(c)) h = h.replace('class="card', 'class="card rob-target');
+        return h;
+      }).join('')}</div>`;
 
   return `
     ${topbarHTML()}
@@ -2905,14 +2903,6 @@ async function handleAction(action, el = null) {
       const nameEl = document.getElementById('name-input');
       myPlayerName = nameEl ? nameEl.value.trim() : '';
       await createRoom();
-      break;
-    }
-
-    case 'join-room': {
-      const nameEl2 = document.getElementById('name-input');
-      myPlayerName = nameEl2 ? nameEl2.value.trim() : '';
-      const input = document.getElementById('room-input');
-      await joinRoom(input ? input.value : '');
       break;
     }
 
