@@ -738,130 +738,14 @@ function sfxShowdown()     { playTone(880,0.07,'sine',0.22); playTone(660,0.07,'
 function sfxWin()  { [523,659,784,1047].forEach((f,i) => playTone(f, 0.32, 'sine', 0.35, i*0.14)); playTone(1047,0.6,'sine',0.28,0.6); }
 function sfxLose() { [380,320,250,180].forEach((f,i) => playTone(f, 0.3, 'sine', 0.28, i*0.15)); }
 
-function startBGM() {
-  if (bgmPlaying) return;
-  bgmPlaying = true;
-  const notes = [
-    [523,0.3],[494,0.15],[523,0.3],[587,0.15],[659,0.45],[0,0.15],
-    [659,0.15],[698,0.15],[659,0.15],[587,0.15],[523,0.45],[0,0.15],
-    [440,0.3],[494,0.15],[523,0.6],[0,0.3],
-  ];
-  function loop() {
-    if (!bgmPlaying) return;
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    let t = ctx.currentTime + 0.05;
-    notes.forEach(([freq, dur]) => {
-      if (freq > 0) {
-        try {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.type = 'sine'; osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.055, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.85);
-          osc.start(t); osc.stop(t + dur);
-        } catch(e) {}
-      }
-      t += dur;
-    });
-    const total = notes.reduce((s,[,d])=>s+d, 0);
-    bgmTimer = setTimeout(loop, (total - 0.15) * 1000);
-  }
-  loop();
-}
-
-function stopBGM() {
-  bgmPlaying = false;
-  if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
-}
-
-let winBgmPlaying = false;
-let winBgmTimer = null;
-let loseBgmPlaying = false;
-let loseBgmTimer = null;
-
-function startWinBGM() {
-  stopBGM(); stopLoseBGM();
-  if (winBgmPlaying) return;
-  winBgmPlaying = true;
-  const notes = [
-    [523,0.12],[659,0.12],[784,0.12],[1047,0.28],[0,0.1],
-    [880,0.12],[1047,0.12],[1175,0.38],[0,0.12],
-    [523,0.12],[659,0.12],[784,0.12],[1047,0.28],[0,0.1],
-    [1047,0.12],[880,0.12],[784,0.12],[659,0.12],[523,0.55],[0,0.3],
-  ];
-  function loop() {
-    if (!winBgmPlaying) return;
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    let t = ctx.currentTime + 0.05;
-    notes.forEach(([freq, dur]) => {
-      if (freq > 0) {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.frequency.value = freq;
-        o.type = 'sine';
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.28, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.88);
-        o.start(t); o.stop(t + dur);
-      }
-      t += dur;
-    });
-    const total = notes.reduce((s, [, d]) => s + d, 0);
-    winBgmTimer = setTimeout(loop, (total - 0.15) * 1000);
-  }
-  loop();
-}
-
-function stopWinBGM() {
-  winBgmPlaying = false;
-  if (winBgmTimer) { clearTimeout(winBgmTimer); winBgmTimer = null; }
-}
-
-function startLoseBGM() {
-  stopBGM(); stopWinBGM();
-  if (loseBgmPlaying) return;
-  loseBgmPlaying = true;
-  const notes = [
-    [440,0.4],[415,0.4],[392,0.4],[370,0.55],[0,0.2],
-    [349,0.4],[330,0.4],[311,0.75],[0,0.6],
-  ];
-  function loop() {
-    if (!loseBgmPlaying) return;
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    let t = ctx.currentTime + 0.05;
-    notes.forEach(([freq, dur]) => {
-      if (freq > 0) {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.frequency.value = freq;
-        o.type = 'sine';
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.2, t + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.85);
-        o.start(t); o.stop(t + dur);
-      }
-      t += dur;
-    });
-    const total = notes.reduce((s, [, d]) => s + d, 0);
-    loseBgmTimer = setTimeout(loop, (total - 0.15) * 1000);
-  }
-  loop();
-}
-
-function stopLoseBGM() {
-  loseBgmPlaying = false;
-  if (loseBgmTimer) { clearTimeout(loseBgmTimer); loseBgmTimer = null; }
-}
-
-function stopAllBGM() {
-  stopBGM(); stopWinBGM(); stopLoseBGM();
-}
+// BGMは廃止（no-op スタブ）
+function startBGM() {}
+function stopBGM() {}
+function startWinBGM() {}
+function stopWinBGM() {}
+function startLoseBGM() {}
+function stopLoseBGM() {}
+function stopAllBGM() {}
 
 function showConfetti() {
   const canvas = document.createElement('canvas');
@@ -944,6 +828,48 @@ function getGameStats() {
   } catch(e) {
     return { total: 0, win: 0, lose: 0, draw: 0 };
   }
+}
+
+// =====================================================
+// グローバル対戦履歴（Firebase）
+// =====================================================
+let globalHistory = null; // null=未ロード
+
+async function loadGlobalHistory() {
+  try {
+    const res = await fetch(`${FIREBASE_DB_URL}/history.json?orderBy="$key"&limitToLast=10`);
+    if (!res.ok) { globalHistory = []; render(); return; }
+    const data = await res.json();
+    if (!data) { globalHistory = []; render(); return; }
+    globalHistory = Object.entries(data)
+      .sort(([a],[b]) => b.localeCompare(a))
+      .slice(0, 10)
+      .map(([, v]) => v);
+    render();
+  } catch(e) {
+    globalHistory = [];
+  }
+}
+
+async function recordGlobalHistory() {
+  try {
+    const myP = myRole === 'p1' ? 1 : 2;
+    const p1 = pName(1);
+    const p2 = pName(2);
+    const myChips = pChips(myP);
+    const oppChips = pChips(myP === 1 ? 2 : 1);
+    const winner = myChips > oppChips ? p1 === pName(myP) ? p1 : p2
+                 : myChips < oppChips ? p1 === pName(myP) ? p2 : p1
+                 : null; // draw
+    // p1Chipsが多い方が勝者
+    const winnerName = G.p1Chips > G.p2Chips ? p1 : G.p2Chips > G.p1Chips ? p2 : null;
+    const key = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    await fbWrite(`/history/${key}`, {
+      p1, p2,
+      winner: winnerName,
+      date: new Date().toLocaleDateString('ja-JP')
+    });
+  } catch(e) {}
 }
 
 // card id: 0-23 = suit*6+rankIdx, 24-25 = jokers
@@ -1126,12 +1052,15 @@ function tryFullHouse(normals, jc) {
 
 function tryFlush(normals, jc) {
   if (normals.length + jc < 5) return null;
-  if (jc === 5) return { rank:6, name:'フラッシュ', tb:[14,13,12,11,10] };
+  // ジョーカーはスートを持たないため、ノーマルカードが全て同じスートの場合のみフラッシュ成立
+  // （異なるスートのノーマルカードをジョーカーで「スート変換」はできない）
+  if (normals.length === 0) return { rank:6, name:'フラッシュ', tb:[14,13,12,11,10] };
   for (let s = 0; s < 4; s++) {
     const suitCards = normals.filter(c => cardSuit(c) === s);
     const otherCards = normals.filter(c => cardSuit(c) !== s);
-    if (otherCards.length <= jc) {
-      const vals = normals.map(c => cardRankVal(c)).sort((a,b)=>b-a);
+    if (otherCards.length === 0) {
+      // 全ノーマルカードが同じスート → ジョーカーで残りを埋めてフラッシュ
+      const vals = suitCards.map(c => cardRankVal(c)).sort((a,b)=>b-a);
       return { rank:6, name:'フラッシュ', tb:vals };
     }
   }
@@ -1681,6 +1610,7 @@ async function nextMatch() {
   if (checkGameOver()) {
     recordRecentOpponent();
     recordGameStats();
+    recordGlobalHistory();
     G.phase = 'game-over';
     localPhase = 'game-over';
     await syncGame();
@@ -2268,16 +2198,25 @@ function renderLobby() {
         </div>`).join('')}
     </div>` : '';
 
-  const stats = getGameStats();
-  const statsHtml = stats.total > 0 ? `
-    <div style="width:100%;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;text-align:left;">
-      <div style="font-size:12px;color:#aaa;margin-bottom:6px;">累計戦績 (${stats.total}回プレイ)</div>
-      <div style="display:flex;gap:16px;font-size:14px;font-weight:bold;">
-        <span style="color:#00ff88;">勝 ${stats.win}</span>
-        <span style="color:#ff4444;">負 ${stats.lose}</span>
-        <span style="color:#ffaa00;">引分 ${stats.draw}</span>
-      </div>
-    </div>` : '';
+  // グローバル対戦履歴
+  let historyHtml = '';
+  if (globalHistory === null) {
+    historyHtml = `<div style="width:100%;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      <div style="font-size:12px;color:#aaa;text-align:center;"><span class="spinner" style="width:12px;height:12px;vertical-align:middle;"></span> 対戦履歴を読み込み中...</div>
+    </div>`;
+  } else if (globalHistory.length > 0) {
+    historyHtml = `<div style="width:100%;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;text-align:left;">
+      <div style="font-size:12px;color:#aaa;margin-bottom:6px;">直近の対戦履歴（全プレイヤー共通）</div>
+      ${globalHistory.map(h => {
+        const winnerText = h.winner ? `<span style="color:#ffd700;font-weight:bold;">${h.winner}</span> の勝利` : `<span style="color:#ffaa00;">引き分け</span>`;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a3a1a;font-size:12px;">
+          <span style="color:#ccc;">${h.p1} vs ${h.p2}</span>
+          <span>${winnerText}</span>
+          <span style="color:#555;font-size:10px;">${h.date||''}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
 
   return `<div class="title-screen">
     <h1>ボンド</h1>
@@ -2288,6 +2227,7 @@ function renderLobby() {
       style="width:100%;padding:10px 12px;border-radius:8px;border:2px solid #444;background:#0a2a18;color:#fff;font-size:16px;font-family:inherit;margin-bottom:14px;box-sizing:border-box;">
     <button class="btn btn-primary btn-big" data-action="create-room" ${firebaseNotSet ? 'disabled' : ''}>部屋を作る</button>
     <button class="btn btn-big" style="background:#5a2d82;color:#fff;margin-bottom:10px;" data-action="start-cpu">CPUと対戦</button>
+    ${historyHtml}
     ${roomListHtml}
     ${reconnectHtml}
     ${warnHtml}
@@ -3090,7 +3030,9 @@ async function handleAction(action, el = null) {
       _gameOverRecorded = false;
       setConnStatus(false);
       availableRooms = null;
+      globalHistory = null;
       loadAvailableRooms();
+      loadGlobalHistory();
       render();
       break;
 
@@ -3139,6 +3081,7 @@ function handleCardClick(id) {
 localPhase = 'lobby';
 render();
 loadAvailableRooms();
+loadGlobalHistory();
 </script>
 </body>
 </html>
