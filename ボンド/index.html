@@ -1283,7 +1283,7 @@ async function loadAvailableRooms() {
     const EXPIRE_MS = 5 * 60 * 1000; // 5分
     // 期限切れ部屋（5分以上経過 かつ ゲーム未開始）を削除
     const expiredIds = Object.entries(rooms)
-      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready && r.createdAt && (now - r.createdAt) > EXPIRE_MS)
+      .filter(([id, r]) => r && r.p1Ready && !r.p2Ready && (!r.createdAt || (now - r.createdAt) > EXPIRE_MS))
       .map(([id]) => id);
     for (const id of expiredIds) {
       fbDelete(`/rooms/${id}`).catch(() => {});
