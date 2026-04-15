@@ -1074,29 +1074,25 @@ async function cpuDoQuestion(playerIdx) {
 async function cpuDoRespondCall(playerIdx) {
   await new Promise(r => setTimeout(r, 600));
   const poss = inferHiddenPossibilities(playerIdx);
-  // 候補が1つ = 100%確定、コール
-  const response = poss.length === 1 ? 'call' : 'fold';
+  // 候補が2以下（正答率50%以上）ならコール、3以上ならフォルド
+  const response = poss.length <= 2 ? 'call' : 'fold';
   await respondCall(playerIdx, response);
 }
 
 async function cpuDoDeclare(playerIdx) {
   await new Promise(r => setTimeout(r, 600));
   const poss = inferHiddenPossibilities(playerIdx);
-  let guess;
-  if (poss.length === 1) {
-    const h = poss[0];
-    guess = [...Array(h.J).fill('J'), ...Array(h.Q).fill('Q'), ...Array(h.K).fill('K')];
-  } else {
-    guess = [0, 1, 2].map(() => CARD_TYPES[Math.floor(Math.random() * 3)]);
-  }
+  // 候補の中からランダムに1つ選ぶ（情報を活かしつつ100%にならない）
+  const h = poss[Math.floor(Math.random() * poss.length)];
+  const guess = [...Array(h.J).fill('J'), ...Array(h.Q).fill('Q'), ...Array(h.K).fill('K')];
   await declareGuess(playerIdx, guess);
 }
 
 async function cpuDoForcedCallRespond(playerIdx) {
   await new Promise(r => setTimeout(r, 3000)); // 人間プレイヤーが操作できるよう長めに待機
   const poss = inferHiddenPossibilities(playerIdx);
-  // 候補が1つ = 100%確定、コール
-  const response = poss.length === 1 ? 'call' : 'fold';
+  // 候補が2以下（正答率50%以上）ならコール、3以上ならフォルド
+  const response = poss.length <= 2 ? 'call' : 'fold';
   await forcedCallRespond(playerIdx, response);
 }
 
