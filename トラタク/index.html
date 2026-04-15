@@ -383,6 +383,103 @@ label { font-size: 13px; color: #aac; display: block; margin-bottom: 4px; }
 <body>
 <div id="app"></div>
 <script>
+// ══════════════════════════════════════════
+// 効果音（Web Audio API）
+// ══════════════════════════════════════════
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+function playSound(name) {
+  try {
+    const ctx = getAudioCtx();
+    const t = ctx.currentTime;
+    const def = {
+      // 質問を送信したとき
+      question: () => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(660, t); o.frequency.linearRampToValueAtTime(880, t + 0.08);
+        g.gain.setValueAtTime(0.18, t); g.gain.linearRampToValueAtTime(0, t + 0.12);
+        o.start(t); o.stop(t + 0.12);
+      },
+      // コール宣言
+      call: () => {
+        [0, 1].forEach((i) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'square'; o.frequency.value = [440, 660][i];
+          g.gain.setValueAtTime(0, t + i * 0.08); g.gain.linearRampToValueAtTime(0.15, t + i * 0.08 + 0.02);
+          g.gain.linearRampToValueAtTime(0, t + i * 0.08 + 0.12);
+          o.start(t + i * 0.08); o.stop(t + i * 0.08 + 0.12);
+        });
+      },
+      // フォルド
+      fold: () => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(330, t); o.frequency.linearRampToValueAtTime(220, t + 0.15);
+        g.gain.setValueAtTime(0.14, t); g.gain.linearRampToValueAtTime(0, t + 0.2);
+        o.start(t); o.stop(t + 0.2);
+      },
+      // 正解（+2pt）
+      correct: () => {
+        [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.32]].forEach(([freq, delay]) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'triangle'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0, t + delay); g.gain.linearRampToValueAtTime(0.2, t + delay + 0.02);
+          g.gain.linearRampToValueAtTime(0, t + delay + 0.18);
+          o.start(t + delay); o.stop(t + delay + 0.2);
+        });
+      },
+      // 不正解（-1pt）
+      wrong: () => {
+        [[220, 0], [196, 0.13]].forEach(([freq, delay]) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'sawtooth'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0.15, t + delay); g.gain.linearRampToValueAtTime(0, t + delay + 0.15);
+          o.start(t + delay); o.stop(t + delay + 0.18);
+        });
+      },
+      // ラウンド終了
+      roundEnd: () => {
+        [[523, 0], [659, 0.1]].forEach(([freq, delay]) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0.14, t + delay); g.gain.linearRampToValueAtTime(0, t + delay + 0.22);
+          o.start(t + delay); o.stop(t + delay + 0.25);
+        });
+      },
+      // ゲームオーバー（勝利ファンファーレ）
+      gameOver: () => {
+        [[523, 0], [659, 0.1], [784, 0.2], [659, 0.32], [784, 0.42], [1047, 0.55]].forEach(([freq, delay]) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'triangle'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0, t + delay); g.gain.linearRampToValueAtTime(0.22, t + delay + 0.03);
+          g.gain.linearRampToValueAtTime(0, t + delay + 0.22);
+          o.start(t + delay); o.stop(t + delay + 0.25);
+        });
+      },
+      // 自分のターン通知
+      myTurn: () => {
+        [[660, 0], [880, 0.1]].forEach(([freq, delay]) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0.15, t + delay); g.gain.linearRampToValueAtTime(0, t + delay + 0.12);
+          o.start(t + delay); o.stop(t + delay + 0.14);
+        });
+      },
+    };
+    def[name]?.();
+  } catch(e) { /* 音声非対応環境では無視 */ }
+}
+
 const FIREBASE_DB_URL = 'https://torataku-c1a6b-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 // ── Firebase ヘルパー ──
@@ -590,12 +687,18 @@ function startSSE() {
 }
 
 function updateLocalPhase() {
+  const prev = localPhase;
   if (G.phase === 'question') {
     localPhase = 'question';
+    // 自分のターンになったとき通知音
+    if (prev !== 'question' || G.questionerIdx === myRole) {
+      if (G.questionerIdx === myRole) playSound('myTurn');
+    }
   } else if (G.phase === 'call-response') {
     // 自分が応答待ちかどうか
     const pending = G.callResponseOrder.find(i => !(String(i) in (G.callResponses || {})));
     if (pending === myRole && !(String(myRole) in (G.callResponses || {}))) {
+      if (localPhase !== 'call-response') playSound('myTurn');
       localPhase = 'call-response';
     } else {
       localPhase = 'call-response-wait';
@@ -603,16 +706,28 @@ function updateLocalPhase() {
   } else if (G.phase === 'call-declare') {
     const nextDeclarer = G.declareOrder.find(i => !G.callDeclarations.find(d => d.playerIdx === i));
     if (nextDeclarer === myRole) {
+      if (localPhase !== 'call-declare') playSound('myTurn');
       localPhase = 'call-declare';
     } else {
       localPhase = 'call-declare-wait';
     }
   } else if (G.phase === 'forced-call') {
+    if (prev !== 'forced-call') playSound('myTurn');
     localPhase = 'forced-call';
   } else if (G.phase === 'round-end') {
+    if (prev !== 'round-end') {
+      // ラウンド結果に応じて音を鳴らす
+      const myResult = (G.roundResults || []).find(r => r.playerIdx === myRole);
+      if (myResult?.result === 'correct') playSound('correct');
+      else if (myResult?.result === 'wrong') playSound('wrong');
+      else playSound('roundEnd');
+    }
     localPhase = 'round-end';
   } else if (G.phase === 'game-over') {
-    if (localPhase !== 'game-over') saveMatchHistory();
+    if (localPhase !== 'game-over') {
+      saveMatchHistory();
+      playSound('gameOver');
+    }
     localPhase = 'game-over';
   }
 }
@@ -640,6 +755,7 @@ async function submitQuestion(cardType, count, asPlayer = myRole) {
   if (G.questionerIdx !== asPlayer) return;
   try {
 
+  playSound('question');
   // 各プレーヤーの回答を自動計算
   const answers = G.hands.map(hand => hand.filter(c => c === cardType).length);
 
@@ -711,6 +827,7 @@ async function declareCall(playerIdx) {
 async function respondCall(playerIdx, response) {
   if (G.phase !== 'call-response') return;
   if (String(playerIdx) in (G.callResponses || {})) return; // 二重送信防止
+  playSound(response === 'call' ? 'call' : 'fold');
   try {
     await fbPatch(`/rooms/${roomId}/game/callResponses`, { [String(playerIdx)]: response });
     // callers の即時書き込みはレース条件を起こすため、allResponded ブロックで再構築する
@@ -797,6 +914,7 @@ function computeCallResults(declarations, gameState) {
 async function forcedCallRespond(playerIdx, response) {
   if (G.phase !== 'forced-call') return;
   if ((G.forcedCallResponses || {})[String(playerIdx)] != null) return; // 二重送信防止
+  playSound(response === 'call' ? 'call' : 'fold');
   try {
   // ローカルGを即更新してボタンを消す
   G = { ...G, forcedCallResponses: { ...G.forcedCallResponses, [String(playerIdx)]: response } };
