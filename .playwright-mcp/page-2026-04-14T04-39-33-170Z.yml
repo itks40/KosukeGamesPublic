@@ -1,0 +1,19 @@
+- generic [ref=e2]:
+  - generic [ref=e52]:
+    - generic [ref=e53]: トラタク
+    - generic [ref=e54]: v0.1.6
+    - generic [ref=e55]: オンライン
+  - generic [ref=e57]: 待機中…
+  - generic [ref=e58]: 3人揃うまでお待ちください
+  - generic [ref=e59]:
+    - list [ref=e60]:
+      - listitem [ref=e61]:
+        - text: テスター
+        - generic [ref=e63]: 自分
+      - listitem [ref=e64]:
+        - text: プレーヤー2（待機中）
+        - button "CPU追加" [ref=e66]
+      - listitem [ref=e67]:
+        - text: プレーヤー3（待機中）
+        - button "CPU追加" [ref=e69]
+    - button "← 戻る" [ref=e70]

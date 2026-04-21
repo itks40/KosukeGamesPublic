@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "Bash(python -m http.server 8765)",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_evaluate",
+      "Bash(firebase deploy:*)",
+      "Bash(python -m http.server 8765 --bind 127.0.0.1)",
+      "Bash(netstat -ano)",
+      "mcp__playwright__browser_tabs",
+      "Bash(start http://localhost:8765/?v=4)",
+      "Bash(dir \"d:\\\\@work\\\\work@vscode\\\\KosukeGamesPublic\\\\ボンド\")",
+      "Bash(npx --yes serve . -p 5555)"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+- generic [ref=e2]:
+  - generic [ref=e673]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e674] [cursor=pointer]
+  - generic [ref=e675]:
+    - generic [ref=e676]: トラタク
+    - generic [ref=e677]: Round 2
+    - generic [ref=e678]: v0.1.5
+    - generic [ref=e679]: オンライン
+  - button "🚪 退室" [ref=e682]
+  - generic [ref=e683]:
+    - generic [ref=e684]:
+      - generic [ref=e685]: テスター（自分）
+      - generic [ref=e686]: 0pt
+    - generic [ref=e687]:
+      - generic [ref=e688]: CPU2
+      - generic [ref=e689]: 0pt
+    - generic [ref=e690]:
+      - generic [ref=e691]: CPU3
+      - generic [ref=e692]: 0pt
+  - generic [ref=e693]:
+    - generic [ref=e694]: あなたの手札（テスター）
+    - generic [ref=e695]:
+      - generic [ref=e696]: Q
+      - generic [ref=e697]: K
+      - generic [ref=e698]: K
+  - generic [ref=e699]:
+    - generic [ref=e700]: 📢 コール宣言フェーズ
+    - generic [ref=e701]: 優先度の低い順に伏せカードを宣言します。
+  - generic [ref=e702]:
+    - generic [ref=e703]: 伏せカード3枚を宣言（計0/3枚選択中）
+    - generic [ref=e704]:
+      - button "J ×0" [ref=e705] [cursor=pointer]
+      - button "Q ×0" [ref=e706] [cursor=pointer]
+      - button "K ×0" [ref=e707] [cursor=pointer]
+    - generic [ref=e708]: タップで追加、3枚選んだら宣言できます
+    - button "📢 カード宣言する" [disabled] [ref=e709]
+  - generic [ref=e710]:
+    - generic [ref=e711]: 質問ログ
+    - generic [ref=e712]:
+      - generic [ref=e713]:
+        - text: CPU3:「Kを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: いいえ"
+      - generic [ref=e714]:
+        - text: CPU2:「Qを2枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: いいえ"

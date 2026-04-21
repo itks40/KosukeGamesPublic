@@ -1,0 +1,50 @@
+- generic [ref=e2]:
+  - generic [ref=e222]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e223] [cursor=pointer]
+  - generic [ref=e224]:
+    - generic [ref=e225]: トラタク
+    - generic [ref=e226]: Round 1
+    - generic [ref=e227]: v0.1.5
+    - generic [ref=e228]: オンライン
+  - button "🚪 退室" [ref=e231]
+  - generic [ref=e232]:
+    - generic [ref=e233]:
+      - generic [ref=e234]: テスター（自分）
+      - generic [ref=e235]: 0pt
+    - generic [ref=e236]:
+      - generic [ref=e237]: CPU2
+      - generic [ref=e238]: 0pt
+    - generic [ref=e239]:
+      - generic [ref=e240]: CPU3
+      - generic [ref=e241]: 0pt
+  - generic [ref=e242]:
+    - generic [ref=e243]: あなたの手札（テスター）
+    - generic [ref=e244]:
+      - generic [ref=e245]: Q
+      - generic [ref=e246]: Q
+      - generic [ref=e247]: K
+  - generic [ref=e248]:
+    - generic [ref=e249]: 場の伏せカード
+    - generic [ref=e250]:
+      - generic [ref=e251]: 🂠
+      - generic [ref=e252]: 🂠
+      - generic [ref=e253]: 🂠
+  - generic [ref=e254]:
+    - generic [ref=e255]: 質問フェーズ
+    - generic [ref=e256]: "テスター: 0/2回 ／ CPU2: 0/2回 ／ CPU3: 0/2回"
+    - generic [ref=e257]: 🎤 テスター が質問中 親
+  - generic [ref=e258]:
+    - generic [ref=e259]: 質問する
+    - generic [ref=e260]: カードの種類
+    - generic [ref=e261]:
+      - button "J" [ref=e262] [cursor=pointer]
+      - button "Q" [ref=e263] [cursor=pointer]
+      - button "K" [ref=e264] [cursor=pointer]
+    - generic [ref=e265]: 枚数
+    - generic [ref=e266]:
+      - button "1枚" [ref=e267] [cursor=pointer]
+      - button "2枚" [ref=e268] [cursor=pointer]
+      - button "3枚" [ref=e269] [cursor=pointer]
+    - button "「Qを1枚以上持っていますか？」と聞く" [ref=e271] [cursor=pointer]
+  - button "🔔 コール！（伏せカードがわかった）" [ref=e273] [cursor=pointer]

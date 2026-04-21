@@ -1,0 +1,67 @@
+- generic [ref=e2]:
+  - generic [ref=e1338]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e1339] [cursor=pointer]
+  - generic [ref=e1340]:
+    - generic [ref=e1341]: トラタク
+    - generic [ref=e1342]: Round 1
+    - generic [ref=e1343]: v0.1.5
+    - generic [ref=e1344]: オンライン
+  - button "🚪 退室" [ref=e1347]
+  - generic [ref=e1348]:
+    - generic [ref=e1349]:
+      - generic [ref=e1350]: テスター（自分）
+      - generic [ref=e1351]: 0pt
+    - generic [ref=e1352]:
+      - generic [ref=e1353]: CPU2
+      - generic [ref=e1354]: 0pt
+    - generic [ref=e1355]:
+      - generic [ref=e1356]: CPU3
+      - generic [ref=e1357]: 0pt
+  - generic [ref=e1358]:
+    - generic [ref=e1359]: あなたの手札（テスター）
+    - generic [ref=e1360]:
+      - generic [ref=e1361]: J
+      - generic [ref=e1362]: Q
+      - generic [ref=e1363]: Q
+  - generic [ref=e1364]:
+    - generic [ref=e1365]: 場の伏せカード
+    - generic [ref=e1366]:
+      - generic [ref=e1367]: 🂠
+      - generic [ref=e1368]: 🂠
+      - generic [ref=e1369]: 🂠
+  - generic [ref=e1370]:
+    - generic [ref=e1371]: ⏱️ 全員が2回質問しました！
+    - generic [ref=e1372]: コールするか、フォルドするか選んでください。
+    - generic [ref=e1373]:
+      - generic [ref=e1374]:
+        - generic [ref=e1375]: テスター
+        - generic [ref=e1376]: 考え中…
+      - generic [ref=e1377]:
+        - generic [ref=e1378]: CPU2
+        - generic [ref=e1380]: フォルド
+      - generic [ref=e1381]:
+        - generic [ref=e1382]: CPU3
+        - generic [ref=e1384]: フォルド
+  - generic [ref=e1385]: 回答済み（残り0人）
+  - generic [ref=e1386]:
+    - generic [ref=e1387]: 質問ログ
+    - generic [ref=e1388]:
+      - generic [ref=e1389]:
+        - text: CPU3:「Jを3枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU2: いいえ"
+      - generic [ref=e1390]:
+        - text: CPU2:「Kを1枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: はい"
+      - generic [ref=e1391]:
+        - text: テスター:「Qを2枚以上持っていますか？」
+        - text: "CPU2: いいえ ／ CPU3: いいえ"
+      - generic [ref=e1392]:
+        - text: CPU3:「Kを3枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU2: いいえ"
+      - generic [ref=e1393]:
+        - text: CPU2:「Qを1枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU3: いいえ"
+      - generic [ref=e1394]:
+        - text: テスター:「Jを1枚以上持っていますか？」
+        - text: "CPU2: いいえ ／ CPU3: はい"

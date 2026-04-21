@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e119]:
+      - generic [ref=e120]: "あなた★: 9枚"
+      - generic [ref=e121]:
+        - text: "場: 2枚"
+        - generic [ref=e122]: P1
+      - generic [ref=e123]: "CPU: 9枚"
+    - generic [ref=e124]:
+      - generic [ref=e125]: ターン1 / 試合1
+      - button "ルール" [ref=e126] [cursor=pointer]
+    - generic [ref=e127]: 手札交換
+    - generic [ref=e128]: 捨てたいカードを選択してから「交換」を押してください（0枚も可）
+    - generic [ref=e129]:
+      - generic [ref=e130]: 手札 (捨てるカードを選択)
+      - generic [ref=e131]:
+        - generic [ref=e132] [cursor=pointer]:
+          - generic [ref=e133]: Q
+          - generic [ref=e134]: ♥
+          - generic [ref=e135]: Q
+        - generic [ref=e136] [cursor=pointer]:
+          - generic [ref=e137]: "10"
+          - generic [ref=e138]: ♥
+          - generic [ref=e139]: "10"
+        - generic [ref=e140] [cursor=pointer]:
+          - generic [ref=e141]: J
+          - generic [ref=e142]: ♣
+          - generic [ref=e143]: J
+        - generic [ref=e144] [cursor=pointer]:
+          - generic [ref=e145]: "10"
+          - generic [ref=e146]: ♦
+          - generic [ref=e147]: "10"
+        - generic [ref=e148] [cursor=pointer]:
+          - generic [ref=e149]: J
+          - generic [ref=e150]: ♠
+          - generic [ref=e151]: J
+    - generic [ref=e152]: "捨て: 1枚 / デッキ: 16枚"
+    - generic [ref=e153]:
+      - button "キャンセル" [ref=e154]
+      - button "交換 (1枚)" [ref=e155] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

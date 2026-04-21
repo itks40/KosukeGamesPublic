@@ -1,0 +1,60 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1866]:
+      - generic [ref=e1867]: "あなた: 5枚"
+      - generic [ref=e1868]:
+        - text: "場: 2枚"
+        - generic [ref=e1869]: P1
+      - generic [ref=e1870]: "CPU★: 13枚"
+    - generic [ref=e1871]:
+      - generic [ref=e1872]: ターン2 / 試合4 — あなたのターン
+      - button "ルール" [ref=e1873] [cursor=pointer]
+    - generic [ref=e1874]:
+      - generic [ref=e1875]: CPU
+      - generic [ref=e1876]: 手札 (5枚)
+      - generic [ref=e1883]: 捨て札
+      - generic [ref=e1884]:
+        - generic [ref=e1885]:
+          - generic [ref=e1886]: "10"
+          - generic [ref=e1887]: ♦
+          - generic [ref=e1888]: "10"
+        - generic [ref=e1889]:
+          - generic [ref=e1890]: "9"
+          - generic [ref=e1891]: ♦
+          - generic [ref=e1892]: "9"
+        - generic [ref=e1893]:
+          - generic [ref=e1894]: Q
+          - generic [ref=e1895]: ♦
+          - generic [ref=e1896]: Q
+    - generic [ref=e1897]: "デッキ: 13枚"
+    - generic [ref=e1898]:
+      - generic [ref=e1899]: あなた (プレイヤー1)
+      - generic [ref=e1900]: 手札 (5枚)
+      - generic [ref=e1901]:
+        - generic [ref=e1902]:
+          - generic [ref=e1903]: Q
+          - generic [ref=e1904]: ♣
+          - generic [ref=e1905]: Q
+        - generic [ref=e1906]:
+          - generic [ref=e1907]: "9"
+          - generic [ref=e1908]: ♠
+          - generic [ref=e1909]: "9"
+        - generic [ref=e1910]:
+          - generic [ref=e1911]: K
+          - generic [ref=e1912]: ♥
+          - generic [ref=e1913]: K
+        - generic [ref=e1914]:
+          - generic [ref=e1915]: A
+          - generic [ref=e1916]: ♣
+          - generic [ref=e1917]: A
+        - generic [ref=e1918]:
+          - generic [ref=e1919]: J
+          - generic [ref=e1920]: ♥
+          - generic [ref=e1921]: J
+      - generic [ref=e1922]: 捨て札
+    - generic [ref=e1924]:
+      - button "ロブ" [ref=e1925] [cursor=pointer]
+      - button "ダウト不可" [disabled] [ref=e1926]
+      - button "手札交換" [ref=e1927] [cursor=pointer]
+      - button "ターン終了" [ref=e1928] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

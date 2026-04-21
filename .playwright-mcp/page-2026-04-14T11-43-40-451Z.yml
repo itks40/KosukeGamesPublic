@@ -1,0 +1,45 @@
+- generic [ref=e2]:
+  - generic [ref=e38]:
+    - generic [ref=e39]: "あなた★: 9枚"
+    - generic [ref=e40]:
+      - text: "場: 2枚"
+      - generic [ref=e41]: P1
+    - generic [ref=e42]: "CPU: 9枚"
+  - generic [ref=e43]:
+    - generic [ref=e44]: ターン1 / 試合1 — あなたのターン
+    - button "ルール" [ref=e45] [cursor=pointer]
+  - generic [ref=e46]:
+    - generic [ref=e47]: CPU
+    - generic [ref=e48]: 手札 (5枚)
+    - generic [ref=e55]: 捨て札
+  - generic [ref=e57]: "デッキ: 16枚"
+  - generic [ref=e58]:
+    - generic [ref=e59]: あなた (プレイヤー1)
+    - generic [ref=e60]: 手札 (5枚)
+    - generic [ref=e61]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: Q
+        - generic [ref=e64]: ♥
+        - generic [ref=e65]: Q
+      - generic [ref=e66]:
+        - generic [ref=e67]: "9"
+        - generic [ref=e68]: ♠
+        - generic [ref=e69]: "9"
+      - generic [ref=e70]:
+        - generic [ref=e71]: A
+        - generic [ref=e72]: ♥
+        - generic [ref=e73]: A
+      - generic [ref=e74]:
+        - generic [ref=e75]: J
+        - generic [ref=e76]: ♥
+        - generic [ref=e77]: J
+      - generic [ref=e78]:
+        - generic [ref=e79]: "9"
+        - generic [ref=e80]: ♦
+        - generic [ref=e81]: "9"
+    - generic [ref=e82]: 捨て札
+  - generic [ref=e84]:
+    - button "ロブ" [disabled] [ref=e85]
+    - button "ダウト" [ref=e86] [cursor=pointer]
+    - button "手札交換" [ref=e87] [cursor=pointer]
+    - button "ターン終了" [ref=e88] [cursor=pointer]

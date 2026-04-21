@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2092]:
+    - heading "ゲーム終了" [level=2] [ref=e2093]
+    - generic [ref=e2094]: "あなた: 3枚"
+    - generic [ref=e2095]: "CPU: 17枚"
+    - generic [ref=e2096]: CPU の勝利！
+    - generic [ref=e2097]: "マッチ数: 4 / 4"
+    - button "もう一度 (ロビーへ)" [ref=e2098] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

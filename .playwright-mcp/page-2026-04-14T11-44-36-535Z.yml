@@ -1,0 +1,52 @@
+- generic [ref=e2]:
+  - generic [ref=e341]:
+    - generic [ref=e342]: "あなた★: 6枚"
+    - generic [ref=e343]:
+      - text: "場: 5枚"
+      - generic [ref=e344]: P1
+    - generic [ref=e345]: "CPU: 9枚"
+  - generic [ref=e346]:
+    - generic [ref=e347]: ターン1 / 試合1 — CPUのターン
+    - button "ルール" [ref=e348] [cursor=pointer]
+  - generic [ref=e349]:
+    - generic [ref=e350]: CPU
+    - generic [ref=e351]: 手札 (5枚)
+    - generic [ref=e358]: 捨て札
+  - generic [ref=e360]: "デッキ: 14枚"
+  - generic [ref=e361]:
+    - generic [ref=e362]: あなた (プレイヤー1)
+    - generic [ref=e363]: 手札 (5枚)
+    - generic [ref=e364]:
+      - generic [ref=e365]:
+        - generic [ref=e366]: Q
+        - generic [ref=e367]: ♥
+        - generic [ref=e368]: Q
+      - generic [ref=e369]:
+        - generic [ref=e370]: A
+        - generic [ref=e371]: ♥
+        - generic [ref=e372]: A
+      - generic [ref=e373]:
+        - generic [ref=e374]: J
+        - generic [ref=e375]: ♥
+        - generic [ref=e376]: J
+      - generic [ref=e377]:
+        - generic [ref=e378]: J
+        - generic [ref=e379]: ♣
+        - generic [ref=e380]: J
+      - generic [ref=e381]:
+        - generic [ref=e382]: A
+        - generic [ref=e383]: ♠
+        - generic [ref=e384]: A
+    - generic [ref=e385]: 捨て札
+    - generic [ref=e386]: 前ターン捨て札 (2枚) — ロブ対象
+    - generic [ref=e387]:
+      - generic [ref=e388]:
+        - generic [ref=e389]: "9"
+        - generic [ref=e390]: ♠
+        - generic [ref=e391]: "9"
+        - text: ROB
+      - generic [ref=e392]:
+        - generic [ref=e393]: "9"
+        - generic [ref=e394]: ♦
+        - generic [ref=e395]: "9"
+        - text: ROB

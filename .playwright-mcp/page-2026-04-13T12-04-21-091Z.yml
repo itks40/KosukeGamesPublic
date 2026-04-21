@@ -1,0 +1,23 @@
+- generic [ref=e2]:
+  - generic [ref=e1114]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e1115] [cursor=pointer]
+  - generic [ref=e1116]:
+    - generic [ref=e1117]: トラタク
+    - generic [ref=e1118]: Round 3
+    - generic [ref=e1119]: v0.1.5
+    - generic [ref=e1120]: オンライン
+  - generic [ref=e1123]: 🏆 ゲーム終了
+  - generic [ref=e1124]:
+    - generic [ref=e1125]:
+      - generic [ref=e1126]: 🥇 CPU2
+      - generic [ref=e1127]: 0pt
+    - generic [ref=e1128]:
+      - generic [ref=e1129]: 🥈 CPU3
+      - generic [ref=e1130]: 0pt
+    - generic [ref=e1131]:
+      - generic [ref=e1132]: 🥉 テスター（自分）
+      - generic [ref=e1133]: "-1pt"
+  - generic [ref=e1134]:
+    - button "もう一度プレイ（同じメンバーで）" [ref=e1135] [cursor=pointer]
+    - button "🚪 退出する" [ref=e1136]

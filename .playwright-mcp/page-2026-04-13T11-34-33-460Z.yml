@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e618]:
+      - generic [ref=e619]: "あなた★: 9枚"
+      - generic [ref=e620]:
+        - text: "場: 2枚"
+        - generic [ref=e621]: P1
+      - generic [ref=e622]: "CPU: 9枚"
+    - generic [ref=e623]:
+      - generic [ref=e624]: ターン2 / 試合1
+      - button "ルール" [ref=e625] [cursor=pointer]
+    - generic [ref=e626]: ダウト結果
+    - generic [ref=e627]:
+      - generic [ref=e628]: 相手 (プレイヤー2) の手札が公開されました
+      - generic [ref=e629]:
+        - generic [ref=e630]:
+          - generic [ref=e631]: "10"
+          - generic [ref=e632]: ♣
+          - generic [ref=e633]: "10"
+        - generic [ref=e634]:
+          - generic [ref=e635]: "10"
+          - generic [ref=e636]: ♥
+          - generic [ref=e637]: "10"
+        - generic [ref=e638]:
+          - generic [ref=e639]: A
+          - generic [ref=e640]: ♠
+          - generic [ref=e641]: A
+        - generic [ref=e642]:
+          - generic [ref=e643]: Q
+          - generic [ref=e644]: ♦
+          - generic [ref=e645]: Q
+        - generic [ref=e646]:
+          - generic [ref=e647]: "9"
+          - generic [ref=e648]: ♣
+          - generic [ref=e649]: "9"
+      - generic [ref=e650]: "実際のジョーカー: 0枚 / 宣言: 0枚"
+    - generic [ref=e651]:
+      - generic [ref=e652]: 成功！
+      - generic [ref=e653]: 相手のジョーカーは0枚でした。チップの変動なし。
+    - button "次へ" [ref=e655] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

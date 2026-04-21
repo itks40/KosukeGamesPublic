@@ -1,0 +1,50 @@
+- generic [ref=e2]:
+  - generic [ref=e801]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e802] [cursor=pointer]
+  - generic [ref=e803]:
+    - generic [ref=e804]: トラタク
+    - generic [ref=e805]: Round 2
+    - generic [ref=e806]: v0.1.5
+    - generic [ref=e807]: オンライン
+  - generic [ref=e809]:
+    - generic [ref=e810]:
+      - generic [ref=e811]: テスター（自分）
+      - generic [ref=e812]: "-1pt"
+    - generic [ref=e813]:
+      - generic [ref=e814]: CPU2
+      - generic [ref=e815]: 0pt
+    - generic [ref=e816]:
+      - generic [ref=e817]: CPU3
+      - generic [ref=e818]: 0pt
+  - generic [ref=e819]:
+    - generic [ref=e820]: ラウンド 2 終了
+    - generic [ref=e821]:
+      - generic [ref=e822]:
+        - text: 🂠 伏せカードは：
+        - strong [ref=e823]: K / J / J
+      - generic [ref=e824]:
+        - generic [ref=e825]: K
+        - generic [ref=e826]: J
+        - generic [ref=e827]: J
+  - generic [ref=e828]:
+    - generic [ref=e829]: 結果
+    - generic [ref=e830]:
+      - generic [ref=e831]: "テスター (宣言: J/Q/K) ❌ 不正解"
+      - generic [ref=e832]: "-1"
+    - generic [ref=e833]:
+      - generic [ref=e834]: CPU2 🏳 フォルド
+      - generic [ref=e835]: ±0
+    - generic [ref=e836]:
+      - generic [ref=e837]: CPU3 🏳 フォルド
+      - generic [ref=e838]: ±0
+  - button "次のラウンドへ ▶" [ref=e840] [cursor=pointer]
+  - generic [ref=e841]:
+    - generic [ref=e842]: 質問ログ
+    - generic [ref=e843]:
+      - generic [ref=e844]:
+        - text: CPU3:「Kを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: いいえ"
+      - generic [ref=e845]:
+        - text: CPU2:「Qを2枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: いいえ"

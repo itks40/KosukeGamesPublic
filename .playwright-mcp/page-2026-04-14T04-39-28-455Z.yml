@@ -1,0 +1,11 @@
+- generic [ref=e2]:
+  - generic [ref=e40]:
+    - generic [ref=e41]: トラタク
+    - generic [ref=e42]: v0.1.6
+    - generic [ref=e43]: オンライン
+  - generic [ref=e45]: 待機中…
+  - generic [ref=e46]: 3人揃うまでお待ちください
+  - generic [ref=e47]:
+    - list [ref=e48]:
+      - listitem [ref=e49]: 読み込み中…
+    - button "← 戻る" [ref=e51]

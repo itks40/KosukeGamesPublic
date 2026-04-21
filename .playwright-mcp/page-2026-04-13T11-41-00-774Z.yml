@@ -1,0 +1,57 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1987]:
+      - generic [ref=e1988]: "あなた: 5枚"
+      - generic [ref=e1989]:
+        - text: "場: 2枚"
+        - generic [ref=e1990]: P1
+      - generic [ref=e1991]: "CPU★: 13枚"
+    - generic [ref=e1992]: ベッティング
+    - generic [ref=e1993]: コール・レイズ・降りるを選択
+    - generic [ref=e1994]:
+      - text: "CPU:"
+      - strong [ref=e1995]: 2枚
+      - text: ベット
+    - generic [ref=e1996]:
+      - generic [ref=e1997]: あなたの手札
+      - generic [ref=e1998]:
+        - generic [ref=e1999]:
+          - generic [ref=e2000]: Q
+          - generic [ref=e2001]: ♣
+          - generic [ref=e2002]: Q
+        - generic [ref=e2003]:
+          - generic [ref=e2004]: "9"
+          - generic [ref=e2005]: ♠
+          - generic [ref=e2006]: "9"
+        - generic [ref=e2007]:
+          - generic [ref=e2008]: K
+          - generic [ref=e2009]: ♥
+          - generic [ref=e2010]: K
+        - generic [ref=e2011]:
+          - generic [ref=e2012]: A
+          - generic [ref=e2013]: ♣
+          - generic [ref=e2014]: A
+        - generic [ref=e2015]:
+          - generic [ref=e2016]: J
+          - generic [ref=e2017]: ♥
+          - generic [ref=e2018]: J
+    - generic [ref=e2019]:
+      - generic [ref=e2020]:
+        - text: "場のチップ:"
+        - strong [ref=e2021]: 2枚
+        - text: "/ チップ:"
+        - strong [ref=e2022]: 5枚
+      - generic [ref=e2023]:
+        - button "−" [disabled] [ref=e2024]
+        - generic [ref=e2025]: "3"
+        - button "＋" [ref=e2026]
+      - generic [ref=e2027]: 3〜5枚
+    - generic [ref=e2028]:
+      - button "降りる 場代のみ相手へ" [ref=e2029] [cursor=pointer]:
+        - text: 降りる
+        - text: 場代のみ相手へ
+      - button "コール 2枚" [ref=e2030] [cursor=pointer]:
+        - text: コール
+        - text: 2枚
+      - button "レイズ (3枚)" [ref=e2031] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

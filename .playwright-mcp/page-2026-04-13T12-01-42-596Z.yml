@@ -1,0 +1,59 @@
+- generic [ref=e2]:
+  - generic [ref=e573]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e574] [cursor=pointer]
+  - generic [ref=e575]:
+    - generic [ref=e576]: トラタク
+    - generic [ref=e577]: Round 2
+    - generic [ref=e578]: v0.1.5
+    - generic [ref=e579]: オンライン
+  - button "🚪 退室" [ref=e582]
+  - generic [ref=e583]:
+    - generic [ref=e584]:
+      - generic [ref=e585]: テスター（自分）
+      - generic [ref=e586]: 0pt
+    - generic [ref=e587]:
+      - generic [ref=e588]: CPU2
+      - generic [ref=e589]: 0pt
+    - generic [ref=e590]:
+      - generic [ref=e591]: CPU3
+      - generic [ref=e592]: 0pt
+  - generic [ref=e593]:
+    - generic [ref=e594]: あなたの手札（テスター）
+    - generic [ref=e595]:
+      - generic [ref=e596]: Q
+      - generic [ref=e597]: K
+      - generic [ref=e598]: K
+  - generic [ref=e599]:
+    - generic [ref=e600]: 場の伏せカード
+    - generic [ref=e601]:
+      - generic [ref=e602]: 🂠
+      - generic [ref=e603]: 🂠
+      - generic [ref=e604]: 🂠
+  - generic [ref=e605]:
+    - generic [ref=e606]: 質問フェーズ
+    - generic [ref=e607]: "テスター: 0/2回 ／ CPU2: 1/2回 ／ CPU3: 1/2回"
+    - generic [ref=e608]: 🎤 テスター が質問中
+  - generic [ref=e609]:
+    - generic [ref=e610]: 質問する
+    - generic [ref=e611]: カードの種類
+    - generic [ref=e612]:
+      - button "J" [ref=e613] [cursor=pointer]
+      - button "Q" [ref=e614] [cursor=pointer]
+      - button "K" [ref=e615] [cursor=pointer]
+    - generic [ref=e616]: 枚数
+    - generic [ref=e617]:
+      - button "1枚" [ref=e618] [cursor=pointer]
+      - button "2枚" [ref=e619] [cursor=pointer]
+      - button "3枚" [ref=e620] [cursor=pointer]
+    - button "「?を?枚以上持っていますか？」と聞く" [disabled] [ref=e622]
+  - button "🔔 コール！（伏せカードがわかった）" [ref=e624] [cursor=pointer]
+  - generic [ref=e625]:
+    - generic [ref=e626]: 質問ログ
+    - generic [ref=e627]:
+      - generic [ref=e628]:
+        - text: CPU3:「Kを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: いいえ"
+      - generic [ref=e629]:
+        - text: CPU2:「Qを2枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: いいえ"

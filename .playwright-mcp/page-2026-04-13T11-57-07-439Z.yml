@@ -1,0 +1,14 @@
+- generic [ref=e2]:
+  - generic [ref=e42]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e43] [cursor=pointer]
+  - generic [ref=e44]:
+    - generic [ref=e45]: トラタク
+    - generic [ref=e46]: v0.1.5
+    - generic [ref=e47]: オンライン
+  - generic [ref=e49]: 待機中…
+  - generic [ref=e50]: 3人揃うまでお待ちください
+  - generic [ref=e51]:
+    - list [ref=e52]:
+      - listitem [ref=e53]: 読み込み中…
+    - button "← 戻る" [ref=e55]

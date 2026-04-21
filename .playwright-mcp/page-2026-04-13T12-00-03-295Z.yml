@@ -1,0 +1,62 @@
+- generic [ref=e2]:
+  - generic [ref=e481]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e482] [cursor=pointer]
+  - generic [ref=e483]:
+    - generic [ref=e484]: トラタク
+    - generic [ref=e485]: Round 1
+    - generic [ref=e486]: v0.1.5
+    - generic [ref=e487]: オンライン
+  - generic [ref=e489]:
+    - generic [ref=e490]:
+      - generic [ref=e491]: テスター（自分）
+      - generic [ref=e492]: 0pt
+    - generic [ref=e493]:
+      - generic [ref=e494]: CPU2
+      - generic [ref=e495]: 0pt
+    - generic [ref=e496]:
+      - generic [ref=e497]: CPU3
+      - generic [ref=e498]: 0pt
+  - generic [ref=e499]:
+    - generic [ref=e500]: ラウンド 1 終了
+    - generic [ref=e501]:
+      - generic [ref=e502]:
+        - text: 🂠 伏せカードは：
+        - strong [ref=e503]: K / J / K
+      - generic [ref=e504]:
+        - generic [ref=e505]: K
+        - generic [ref=e506]: J
+        - generic [ref=e507]: K
+  - generic [ref=e508]:
+    - generic [ref=e509]: 結果
+    - generic [ref=e510]:
+      - generic [ref=e511]: テスター ― コールなし
+      - generic [ref=e512]: ±0
+    - generic [ref=e513]:
+      - generic [ref=e514]: CPU2 ― コールなし
+      - generic [ref=e515]: ±0
+    - generic [ref=e516]:
+      - generic [ref=e517]: CPU3 ― コールなし
+      - generic [ref=e518]: ±0
+  - button "次のラウンドへ ▶" [ref=e520] [cursor=pointer]
+  - generic [ref=e521]:
+    - generic [ref=e522]: 質問ログ
+    - generic [ref=e523]:
+      - generic [ref=e524]:
+        - text: CPU3:「Kを1枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: はい"
+      - generic [ref=e525]:
+        - text: CPU2:「Kを1枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU3: いいえ"
+      - generic [ref=e526]:
+        - text: テスター:「Jを2枚以上持っていますか？」
+        - text: "CPU2: いいえ ／ CPU3: はい"
+      - generic [ref=e527]:
+        - text: CPU3:「Kを2枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU2: いいえ"
+      - generic [ref=e528]:
+        - text: CPU2:「Qを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU3: いいえ"
+      - generic [ref=e529]:
+        - text: テスター:「Qを1枚以上持っていますか？」
+        - text: "CPU2: はい ／ CPU3: はい"

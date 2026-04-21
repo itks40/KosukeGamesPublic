@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e287]:
+      - generic [ref=e288]: "あなた★: 6枚"
+      - generic [ref=e289]:
+        - text: "場: 5枚"
+        - generic [ref=e290]: P1
+      - generic [ref=e291]: "CPU: 9枚"
+    - generic [ref=e292]:
+      - generic [ref=e293]: ターン2 / 試合1 — CPUのターン
+      - button "ルール" [ref=e294] [cursor=pointer]
+    - generic [ref=e295]:
+      - generic [ref=e296]: CPU
+      - generic [ref=e297]: 手札 (5枚)
+      - generic [ref=e304]: 捨て札
+      - generic [ref=e306]: ▼ 前ターン捨て札
+      - generic [ref=e308]:
+        - generic [ref=e309]: "10"
+        - generic [ref=e310]: ♠
+        - generic [ref=e311]: "10"
+    - generic [ref=e312]: "デッキ: 15枚"
+    - generic [ref=e313]:
+      - generic [ref=e314]: あなた (プレイヤー1)
+      - generic [ref=e315]: 手札 (5枚)
+      - generic [ref=e316]:
+        - generic [ref=e317]:
+          - generic [ref=e318]: J
+          - generic [ref=e319]: ♠
+          - generic [ref=e320]: J
+        - generic [ref=e321]:
+          - generic [ref=e322]: "9"
+          - generic [ref=e323]: ♠
+          - generic [ref=e324]: "9"
+        - generic [ref=e325]:
+          - text: 🃏
+          - generic [ref=e326]: JOKER
+        - generic [ref=e327]:
+          - generic [ref=e328]: J
+          - generic [ref=e329]: ♥
+          - generic [ref=e330]: J
+        - generic [ref=e331]:
+          - generic [ref=e332]: Q
+          - generic [ref=e333]: ♣
+          - generic [ref=e334]: Q
+      - generic [ref=e335]: 捨て札
+    - generic [ref=e337]: CPUが考えています...
+  - generic [ref=e21]: ● 待機中

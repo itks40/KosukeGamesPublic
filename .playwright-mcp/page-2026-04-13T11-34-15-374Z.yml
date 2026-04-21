@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e602]:
+      - generic [ref=e603]: "あなた★: 9枚"
+      - generic [ref=e604]:
+        - text: "場: 2枚"
+        - generic [ref=e605]: P1
+      - generic [ref=e606]: "CPU: 9枚"
+    - generic [ref=e607]:
+      - generic [ref=e608]: ターン2 / 試合1
+      - button "ルール" [ref=e609] [cursor=pointer]
+    - generic [ref=e610]: "ダウト: ジョーカー枚数を宣言"
+    - generic [ref=e611]: 相手 (プレイヤー2) の手札に入っているジョーカーの枚数を宣言してください
+    - generic [ref=e612]:
+      - button "0枚" [ref=e613] [cursor=pointer]
+      - button "1枚" [ref=e614] [cursor=pointer]
+      - button "2枚" [ref=e615] [cursor=pointer]
+    - button "キャンセル" [ref=e617]
+  - generic [ref=e17]: ● 待機中

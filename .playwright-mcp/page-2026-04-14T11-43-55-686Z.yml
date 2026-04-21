@@ -1,0 +1,15 @@
+- generic [ref=e2]:
+  - generic [ref=e104]:
+    - generic [ref=e105]: "あなた★: 6枚"
+    - generic [ref=e106]:
+      - text: "場: 5枚"
+      - generic [ref=e107]: P1
+    - generic [ref=e108]: "CPU: 9枚"
+  - generic [ref=e109]:
+    - generic [ref=e110]: ターン1 / 試合1
+    - button "ルール" [ref=e111] [cursor=pointer]
+  - generic [ref=e112]: ダウト結果
+  - generic [ref=e113]:
+    - generic [ref=e114]: 失敗！
+    - generic [ref=e115]: "ペナルティ: 3枚をポットへ（宣言: 1枚 / 実際: 0枚）"
+  - button "次へ" [ref=e117] [cursor=pointer]

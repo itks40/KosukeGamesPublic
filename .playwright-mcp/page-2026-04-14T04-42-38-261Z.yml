@@ -1,0 +1,60 @@
+- generic [ref=e2]:
+  - generic [ref=e576]:
+    - generic [ref=e577]: トラタク
+    - generic [ref=e578]: Round 2
+    - generic [ref=e579]: v0.1.6
+    - generic [ref=e580]: オンライン
+  - button "退室" [ref=e583] [cursor=pointer]
+  - generic [ref=e584]:
+    - generic [ref=e585]:
+      - generic [ref=e586]: テスター（自分）
+      - generic [ref=e587]: 0pt
+    - generic [ref=e588]:
+      - generic [ref=e589]: CPU2
+      - generic [ref=e590]: 0pt
+    - generic [ref=e591]:
+      - generic [ref=e592]: CPU3
+      - generic [ref=e593]: 0pt
+  - generic [ref=e594]:
+    - generic [ref=e595]: あなたの手札（テスター）
+    - generic [ref=e596]:
+      - generic [ref=e597]: J
+      - generic [ref=e598]: Q
+      - generic [ref=e599]: Q
+  - generic [ref=e600]:
+    - generic [ref=e601]: 場の伏せカード
+    - generic [ref=e602]:
+      - generic [ref=e603]: 🂠
+      - generic [ref=e604]: 🂠
+      - generic [ref=e605]: 🂠
+  - generic [ref=e606]:
+    - generic [ref=e607]: 質問フェーズ
+    - generic [ref=e608]:
+      - generic [ref=e609]: テスター
+      - generic [ref=e612]: CPU2
+      - generic [ref=e615]: CPU3
+    - generic [ref=e618]: 🎤 テスター が質問中
+  - generic [ref=e619]:
+    - generic [ref=e620]: 質問する（あなたのターン）
+    - generic [ref=e621]: カードの種類
+    - generic [ref=e622]:
+      - button "J" [ref=e623] [cursor=pointer]
+      - button "Q" [ref=e624] [cursor=pointer]
+      - button "K" [ref=e625] [cursor=pointer]
+    - generic [ref=e626]: 枚数
+    - generic [ref=e627]:
+      - button "1枚" [ref=e628] [cursor=pointer]
+      - button "2枚" [ref=e629] [cursor=pointer]
+      - button "3枚" [ref=e630] [cursor=pointer]
+    - generic [ref=e631]: カードと枚数を選択してください
+    - button "質問する" [disabled] [ref=e633]
+  - button "🔔 コール！（伏せカードがわかった）" [ref=e635] [cursor=pointer]
+  - generic [ref=e636]:
+    - generic [ref=e637]: 質問ログ
+    - generic [ref=e638]:
+      - generic [ref=e639]:
+        - text: CPU3:「Qを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: はい"
+      - generic [ref=e640]:
+        - text: CPU2:「Kを1枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: はい"

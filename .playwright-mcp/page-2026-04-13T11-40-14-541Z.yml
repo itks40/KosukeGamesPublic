@@ -1,0 +1,15 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1691]:
+      - generic [ref=e1692]: "あなた★: 6枚"
+      - generic [ref=e1693]:
+        - text: "場: 0枚"
+        - generic [ref=e1694]: P1
+      - generic [ref=e1695]: "CPU: 14枚"
+    - generic [ref=e1696]: 降り！
+    - generic [ref=e1697]:
+      - generic [ref=e1698]: あなた が降りました。CPU の勝利！ +6枚
+      - generic [ref=e1699]: "P1: 6枚 / P2: 14枚 / 場: 0枚"
+    - generic [ref=e1700]: マッチ 3 / 4 完了
+    - button "次の試合へ" [ref=e1702] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

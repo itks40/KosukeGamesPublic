@@ -1,0 +1,18 @@
+- generic [ref=e2]:
+  - generic [ref=e29]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e30] [cursor=pointer]
+  - generic [ref=e31]:
+    - generic [ref=e32]: トラタク
+    - generic [ref=e33]: v0.1.5
+    - generic [ref=e34]: オフライン
+  - generic [ref=e36]:
+    - text: トライアングル
+    - text: タクティクス
+  - generic [ref=e37]: ようこそ、テスター さん
+  - generic [ref=e38]:
+    - button "🏠 部屋を作る（プレーヤー1）" [ref=e39] [cursor=pointer]
+    - button "🚪 部屋に入る（プレーヤー2・3）" [ref=e40] [cursor=pointer]
+  - generic [ref=e41]:
+    - text: ゲームには3人必要です。
+    - text: 1人が部屋を作り、残りの2人がコードで入室します。

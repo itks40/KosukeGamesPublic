@@ -1,0 +1,62 @@
+- generic [ref=e2]:
+  - generic [ref=e1065]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e1066] [cursor=pointer]
+  - generic [ref=e1067]:
+    - generic [ref=e1068]: トラタク
+    - generic [ref=e1069]: Round 3
+    - generic [ref=e1070]: v0.1.5
+    - generic [ref=e1071]: オンライン
+  - generic [ref=e1073]:
+    - generic [ref=e1074]:
+      - generic [ref=e1075]: テスター（自分）
+      - generic [ref=e1076]: "-1pt"
+    - generic [ref=e1077]:
+      - generic [ref=e1078]: CPU2
+      - generic [ref=e1079]: 0pt
+    - generic [ref=e1080]:
+      - generic [ref=e1081]: CPU3
+      - generic [ref=e1082]: 0pt
+  - generic [ref=e1083]:
+    - generic [ref=e1084]: ラウンド 3 終了
+    - generic [ref=e1085]:
+      - generic [ref=e1086]:
+        - text: 🂠 伏せカードは：
+        - strong [ref=e1087]: J / K / Q
+      - generic [ref=e1088]:
+        - generic [ref=e1089]: J
+        - generic [ref=e1090]: K
+        - generic [ref=e1091]: Q
+  - generic [ref=e1092]:
+    - generic [ref=e1093]: 結果
+    - generic [ref=e1094]:
+      - generic [ref=e1095]: テスター ― コールなし
+      - generic [ref=e1096]: ±0
+    - generic [ref=e1097]:
+      - generic [ref=e1098]: CPU2 ― コールなし
+      - generic [ref=e1099]: ±0
+    - generic [ref=e1100]:
+      - generic [ref=e1101]: CPU3 ― コールなし
+      - generic [ref=e1102]: ±0
+  - button "次のラウンドへ ▶" [ref=e1104] [cursor=pointer]
+  - generic [ref=e1105]:
+    - generic [ref=e1106]: 質問ログ
+    - generic [ref=e1107]:
+      - generic [ref=e1108]:
+        - text: CPU2:「Qを3枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU3: いいえ"
+      - generic [ref=e1109]:
+        - text: テスター:「Jを1枚以上持っていますか？」
+        - text: "CPU2: はい ／ CPU3: はい"
+      - generic [ref=e1110]:
+        - text: CPU3:「Kを3枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU2: いいえ"
+      - generic [ref=e1111]:
+        - text: CPU2:「Kを3枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU3: いいえ"
+      - generic [ref=e1112]:
+        - text: テスター:「Kを1枚以上持っていますか？」
+        - text: "CPU2: いいえ ／ CPU3: いいえ"
+      - generic [ref=e1113]:
+        - text: CPU3:「Jを2枚以上持っていますか？」
+        - text: "テスター: いいえ ／ CPU2: いいえ"

@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e331]:
+      - generic [ref=e332]: "あなた★: 9枚"
+      - generic [ref=e333]:
+        - text: "場: 2枚"
+        - generic [ref=e334]: P1
+      - generic [ref=e335]: "CPU: 9枚"
+    - generic [ref=e336]:
+      - generic [ref=e337]: ターン2 / 試合1
+      - button "ルール" [ref=e338] [cursor=pointer]
+    - generic [ref=e339]: "ロブ: 自分の手札を捨てる"
+    - generic [ref=e340]: 取った3枚分、自分の手札から捨てるカードを選んでください
+    - generic [ref=e341]: "取得したカード:"
+    - generic [ref=e343]:
+      - generic [ref=e344]:
+        - generic [ref=e345]: A
+        - generic [ref=e346]: ♦
+        - generic [ref=e347]: A
+      - generic [ref=e348]:
+        - generic [ref=e349]: Q
+        - generic [ref=e350]: ♣
+        - generic [ref=e351]: Q
+      - generic [ref=e352]:
+        - generic [ref=e353]: K
+        - generic [ref=e354]: ♣
+        - generic [ref=e355]: K
+    - generic [ref=e356]:
+      - generic [ref=e357]: 自分の手札 (3枚選択してください)
+      - generic [ref=e358]:
+        - generic [ref=e359] [cursor=pointer]:
+          - generic [ref=e360]: Q
+          - generic [ref=e361]: ♥
+          - generic [ref=e362]: Q
+        - generic [ref=e363] [cursor=pointer]:
+          - generic [ref=e364]: J
+          - generic [ref=e365]: ♣
+          - generic [ref=e366]: J
+        - generic [ref=e367] [cursor=pointer]:
+          - generic [ref=e368]: "10"
+          - generic [ref=e369]: ♦
+          - generic [ref=e370]: "10"
+        - generic [ref=e371] [cursor=pointer]:
+          - generic [ref=e372]: J
+          - generic [ref=e373]: ♠
+          - generic [ref=e374]: J
+        - generic [ref=e375] [cursor=pointer]:
+          - generic [ref=e376]: J
+          - generic [ref=e377]: ♦
+          - generic [ref=e378]: J
+    - generic [ref=e379]: "選択中: 0 / 3枚"
+    - button "捨てて取る" [disabled] [ref=e381]
+  - generic [ref=e17]: ● 待機中

@@ -1,0 +1,47 @@
+- generic [ref=e2]:
+  - generic [ref=e274]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e275] [cursor=pointer]
+  - generic [ref=e276]:
+    - generic [ref=e277]: トラタク
+    - generic [ref=e278]: Round 1
+    - generic [ref=e279]: v0.1.5
+    - generic [ref=e280]: オンライン
+  - button "🚪 退室" [ref=e283]
+  - generic [ref=e284]:
+    - generic [ref=e285]:
+      - generic [ref=e286]: テスター（自分）
+      - generic [ref=e287]: 0pt
+    - generic [ref=e288]:
+      - generic [ref=e289]: CPU2
+      - generic [ref=e290]: 0pt
+    - generic [ref=e291]:
+      - generic [ref=e292]: CPU3
+      - generic [ref=e293]: 0pt
+  - generic [ref=e294]:
+    - generic [ref=e295]: あなたの手札（テスター）
+    - generic [ref=e296]:
+      - generic [ref=e297]: Q
+      - generic [ref=e298]: Q
+      - generic [ref=e299]: K
+  - generic [ref=e300]:
+    - generic [ref=e301]: 場の伏せカード
+    - generic [ref=e302]:
+      - generic [ref=e303]: 🂠
+      - generic [ref=e304]: 🂠
+      - generic [ref=e305]: 🂠
+  - generic [ref=e306]:
+    - generic [ref=e307]: 質問フェーズ
+    - generic [ref=e308]: "テスター: 1/2回 ／ CPU2: 1/2回 ／ CPU3: 0/2回"
+    - generic [ref=e309]: 🎤 CPU3 が質問中
+  - generic [ref=e310]: ⏳ CPU3 が質問しています…
+  - button "🔔 コール！（伏せカードがわかった）" [ref=e312] [cursor=pointer]
+  - generic [ref=e313]:
+    - generic [ref=e314]: 質問ログ
+    - generic [ref=e315]:
+      - generic [ref=e316]:
+        - text: CPU2:「Qを2枚以上持っていますか？」
+        - text: "テスター: はい ／ CPU3: いいえ"
+      - generic [ref=e317]:
+        - text: テスター:「Qを1枚以上持っていますか？」
+        - text: "CPU2: はい ／ CPU3: はい"

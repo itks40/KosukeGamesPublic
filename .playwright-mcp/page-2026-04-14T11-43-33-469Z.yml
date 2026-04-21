@@ -1,0 +1,15 @@
+- generic [ref=e3]:
+  - heading "ボンド" [level=1] [ref=e4]
+  - generic [ref=e5]: 2人対戦カードゲーム
+  - textbox "あなたの名前（省略可）" [ref=e6]
+  - button "部屋を作る" [ref=e7] [cursor=pointer]
+  - generic [ref=e8]: または
+  - generic [ref=e9]:
+    - textbox "ルームコード" [ref=e10]
+    - button "入室" [ref=e11] [cursor=pointer]
+  - button "CPUと対戦" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - generic [ref=e14]: 参加できる部屋
+    - button "更新" [ref=e15] [cursor=pointer]
+  - generic [ref=e17]: 部屋を検索中...
+  - button "ルールを見る ▼" [ref=e20] [cursor=pointer]

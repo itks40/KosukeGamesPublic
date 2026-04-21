@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e935]:
+      - generic [ref=e936]: "あなた★: 9枚"
+      - generic [ref=e937]:
+        - text: "場: 2枚"
+        - generic [ref=e938]: P1
+      - generic [ref=e939]: "CPU: 9枚"
+    - generic [ref=e940]: ベッティング
+    - generic [ref=e941]: "先攻: 追加ベット枚数を決めてください"
+    - generic [ref=e942]:
+      - generic [ref=e943]: あなたの手札
+      - generic [ref=e944]:
+        - generic [ref=e945]:
+          - generic [ref=e946]: J
+          - generic [ref=e947]: ♠
+          - generic [ref=e948]: J
+        - generic [ref=e949]:
+          - generic [ref=e950]: J
+          - generic [ref=e951]: ♦
+          - generic [ref=e952]: J
+        - generic [ref=e953]:
+          - generic [ref=e954]: A
+          - generic [ref=e955]: ♦
+          - generic [ref=e956]: A
+        - generic [ref=e957]:
+          - generic [ref=e958]: Q
+          - generic [ref=e959]: ♣
+          - generic [ref=e960]: Q
+        - generic [ref=e961]:
+          - generic [ref=e962]: K
+          - generic [ref=e963]: ♣
+          - generic [ref=e964]: K
+    - generic [ref=e965]:
+      - generic [ref=e966]:
+        - text: "場のチップ:"
+        - strong [ref=e967]: 2枚
+        - text: "/ チップ:"
+        - strong [ref=e968]: 9枚
+      - generic [ref=e969]:
+        - button "−" [ref=e970]
+        - generic [ref=e971]: "3"
+        - button "＋" [ref=e972]
+      - generic [ref=e973]: 1〜9枚
+    - generic [ref=e974]:
+      - button "降りる 場代のみ相手へ" [ref=e975] [cursor=pointer]:
+        - text: 降りる
+        - text: 場代のみ相手へ
+      - button "ベット (3枚)" [ref=e976] [cursor=pointer]
+  - generic [ref=e17]: ● 待機中

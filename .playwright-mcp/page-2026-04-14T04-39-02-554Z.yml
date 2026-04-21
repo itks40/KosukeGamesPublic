@@ -1,0 +1,16 @@
+- generic [ref=e2]:
+  - generic [ref=e15]:
+    - text: 名前を入力してください
+    - button "✕" [ref=e16] [cursor=pointer]
+  - generic [ref=e17]:
+    - generic [ref=e18]: トラタク
+    - generic [ref=e19]: v0.1.6
+    - generic [ref=e20]: オフライン
+  - generic [ref=e22]:
+    - text: トライアングル
+    - text: タクティクス
+  - generic [ref=e23]: 3人用推理カードゲーム
+  - generic [ref=e24]:
+    - generic [ref=e25]: プレーヤー名
+    - textbox "名前を入力" [ref=e26]
+    - button "決定" [ref=e28] [cursor=pointer]

@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e104]:
+      - generic [ref=e105]: "あなた★: 6枚"
+      - generic [ref=e106]:
+        - text: "場: 5枚"
+        - generic [ref=e107]: P1
+      - generic [ref=e108]: "CPU: 9枚"
+    - generic [ref=e109]:
+      - generic [ref=e110]: ターン1 / 試合1
+      - button "ルール" [ref=e111] [cursor=pointer]
+    - generic [ref=e112]: ダウト結果
+    - generic [ref=e113]:
+      - generic [ref=e114]: 相手 (CPU) の手札が公開されました
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - text: 🃏
+          - generic [ref=e117]: JOKER
+        - generic [ref=e118]:
+          - generic [ref=e119]: K
+          - generic [ref=e120]: ♠
+          - generic [ref=e121]: K
+        - generic [ref=e122]:
+          - generic [ref=e123]: "10"
+          - generic [ref=e124]: ♠
+          - generic [ref=e125]: "10"
+        - generic [ref=e126]:
+          - generic [ref=e127]: Q
+          - generic [ref=e128]: ♥
+          - generic [ref=e129]: Q
+        - generic [ref=e130]:
+          - generic [ref=e131]: A
+          - generic [ref=e132]: ♥
+          - generic [ref=e133]: A
+      - generic [ref=e134]: "実際のジョーカー: 1枚 / 宣言: 0枚"
+    - generic [ref=e135]:
+      - generic [ref=e136]: 失敗！
+      - generic [ref=e137]: "ペナルティ: 3枚をポットへ"
+    - button "次へ" [ref=e139] [cursor=pointer]
+  - generic [ref=e21]: ● 待機中
