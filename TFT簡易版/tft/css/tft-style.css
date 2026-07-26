@@ -1,0 +1,640 @@
+/* ============================================================
+   TFT（戦略シミュレーション）専用スタイル。
+   基本変数・.screen/.btn 等は ../css/style.css を継承する。
+   ============================================================ */
+
+/* --- ロビー --- */
+.tft-lobby-inner {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+.tft-lobby-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+.tft-lobby-slots { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.tft-lobby-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+}
+.tft-slot-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.tft-slot-name { flex: 1; font-weight: bold; }
+
+/* ロビー: 常設CPU7勢力の紹介（人数に関係なく必ず盤面に居る対戦相手） */
+.tft-lobby-foes {
+  margin-top: 0.9rem; padding-top: 0.7rem; border-top: 1px dashed var(--border);
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.tft-lobby-foes-title { font-weight: bold; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.2rem; }
+.tft-lobby-foe {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  font-size: 0.78rem; padding: 0.25rem 0.2rem;
+}
+.tft-lobby-foe-name { font-weight: bold; min-width: 8em; }
+.tft-lobby-foe-cell { color: var(--gold); font-weight: bold; min-width: 2.4em; }
+.tft-lobby-foe-note { color: var(--muted); font-size: 0.72rem; }
+.tft-slot-type { cursor: pointer; padding: 0.3rem 1rem; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 0.85rem; }
+.tft-slot-type.human { background: var(--accent); border-color: var(--accent); cursor: default; }
+.tft-slot-type.cpu { background: var(--card); }
+.tft-slot-type.off { opacity: 0.5; }
+
+.tft-turn-length { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.tft-turn-option {
+  cursor: pointer; padding: 0.4rem 1rem; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.85rem;
+}
+.tft-turn-option.selected { background: var(--gold); color: #1a1a1a; border-color: var(--gold); font-weight: bold; }
+
+#tft-btn-start { width: 100%; }
+
+/* --- HUD --- */
+.tft-hud {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 1rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.tft-hud-item { font-weight: bold; white-space: nowrap; }
+.tft-hud-spacer { flex: 1; }
+.tft-hud-me {
+  padding: 0.25rem 0.9rem; border-radius: 999px;
+  font-weight: bold; font-size: 0.9rem; color: #10131f;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+}
+.tft-phase-guide {
+  padding: 0.35rem 1rem;
+  font-size: 0.84rem;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border);
+}
+.tft-phase-badge {
+  padding: 0.25rem 0.9rem; border-radius: 999px; font-weight: bold; font-size: 0.85rem;
+  background: var(--card); border: 1px solid var(--border);
+}
+.tft-phase-badge.phase-live { background: #2a3a5a; border-color: #7ab4ff; }
+.tft-phase-badge.phase-over { background: #3a2a5a; border-color: #c084fc; }
+.tft-timer { font-size: 1.15rem; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--gold); }
+.tft-timer.urgent { color: var(--red); animation: tft-blink 0.8s step-end infinite; }
+@keyframes tft-blink { 50% { opacity: 0.35; } }
+.tft-food-badge {
+  padding: 0.3rem 0.8rem; border-radius: 999px; font-weight: bold; font-size: 0.9rem;
+  background: #3d5a2a; color: #d8f5c0;
+}
+.tft-food-badge.food-danger {
+  background: #5a2a2a; color: #ffb0b0;
+  animation: tft-blink 0.8s step-end infinite;
+}
+/* 暦バッジ: 収穫月・収入月は強調して季節のリズムを伝える */
+.tft-hud-item.harvest-month,
+.tft-hud-item.income-month { padding: 0.25rem 0.7rem; border-radius: 999px; }
+.tft-hud-item.harvest-month { background: #3d5a2a; color: #d8f5c0; }
+.tft-hud-item.income-month  { background: #5a4a1a; color: #ffe9a8; }
+.tft-btn-small { padding: 0.3rem 0.7rem; font-size: 0.9rem; background: var(--card); color: var(--text); }
+
+/* --- レイアウト --- */
+.tft-main { display: flex; flex: 1; gap: 1rem; padding: 1rem; overflow: hidden; }
+.tft-board-wrap { flex: 1; display: flex; flex-direction: column; gap: 0.8rem; align-items: center; justify-content: flex-start; padding-top: 1rem; overflow: auto; }
+
+/* --- 盤面 --- */
+.tft-board-holder { position: relative; }
+
+.tft-deploy-bar {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card); border: 1px solid var(--gold);
+  color: var(--text);
+  font-weight: bold;
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  margin-bottom: 0.6rem;
+}
+.tft-deploy-bar span { flex: 1; }
+
+/* ヘックス盤面: セルは JS で絶対配置（left/top/width/height）。サイズもJS設定。 */
+.tft-board {
+  position: relative;
+  background: #0a0a18;
+  border-radius: var(--radius);
+}
+/* pointy-top 六角形。本体=枠色(--edge)、::before=塗り(--fill) を inset で重ねて枠に見せる。 */
+.tft-cell {
+  --hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  position: absolute;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 1rem;
+  line-height: 1.1;
+  clip-path: var(--hex);
+  background: var(--edge, #1a2740);
+  transition: filter 0.15s;
+}
+.tft-cell::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--hex);
+  background: var(--fill, rgba(255, 255, 255, 0.04));
+}
+.tft-cell:hover { filter: brightness(1.3); }
+
+/* 枠色のレイヤリング（後のルールほど優先）: 自領土 < 移動可 < 侵攻可 < 選択元 */
+.tft-cell.own { --edge: var(--own-color, #1a2740); }
+.tft-cell.movable { --edge: #3ddad7; }
+.tft-cell.attackable {
+  --edge: #ff5a5a;
+  cursor: crosshair;
+  animation: tft-attackable-pulse 0.9s ease-in-out infinite;
+}
+@keyframes tft-attackable-pulse { 50% { filter: brightness(1.4); } }
+.tft-cell.origin { --edge: var(--gold); }
+/* 現在選択中セル（サイドパネルの表示起点。経路ハイライトより弱い優先度なので前に置く） */
+.tft-cell.selected { --edge: #ffffff; }
+/* 経路(ルート)ハイライト: 通過済みは金、先端(tip)は明るい金でパルス */
+.tft-cell.route-step { --edge: var(--gold); }
+.tft-cell.route-tip { --edge: #ffcf4d; animation: tft-attackable-pulse 0.9s ease-in-out infinite; }
+/* 計略の対象候補（対象選択モード中のみ。侵攻の赤と区別する紫パルス） */
+.tft-cell.scheme-target {
+  --edge: #c084fc;
+  cursor: crosshair;
+  animation: tft-attackable-pulse 0.9s ease-in-out infinite;
+}
+/* 選択・侵攻可・移動可・経路は枠を太く（塗りの inset を広げる） */
+.tft-cell.origin::before,
+.tft-cell.attackable::before,
+.tft-cell.movable::before,
+.tft-cell.route-step::before,
+.tft-cell.route-tip::before,
+.tft-cell.scheme-target::before,
+.tft-cell.selected::before { inset: 4px; }
+
+/* 占領直後（このターンは出撃不可）: 斜線オーバーレイで警告 */
+.tft-cell.captured-fresh::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--hex);
+  background: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.3) 0 6px, transparent 6px 12px);
+  pointer-events: none;
+}
+
+/* 鍵が無くて手出しできないボスの本拠地: 斜線＋枠を落として「今は触れない」と示す
+   （attackable の赤パルスからは tftRenderBoard 側で除外済み） */
+.tft-cell.locked {
+  --edge: #6b7280;
+  cursor: not-allowed;
+}
+.tft-cell.locked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--hex);
+  background: repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.42) 0 5px, transparent 5px 10px);
+  pointer-events: none;
+}
+
+.tft-cell-origin-badge {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold);
+  color: #1a1a1a;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 0 7px;
+  line-height: 1.4;
+  z-index: 1;
+}
+
+.tft-cell-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.tft-cell-home { font-size: 1.4rem; line-height: 1; }
+.tft-cell-units { font-size: 1rem; font-weight: bold; text-shadow: 0 1px 2px #000; }
+.tft-cell-guard { font-size: 1rem; font-weight: bold; color: #9fd0ff; text-shadow: 0 1px 2px #000; }
+.tft-cell-facilities { font-size: 0.85rem; letter-spacing: -2px; }
+.tft-cell-buildings { font-size: 0.78rem; }
+.tft-cell-construction { font-size: 0.7rem; opacity: 0.85; }
+.tft-cell-monster-hint { font-size: 0.7rem; letter-spacing: -3px; opacity: 0.75; }
+.tft-cell-ap { font-size: 0.72rem; font-weight: bold; color: #ffe27a; text-shadow: 0 1px 2px #000; }
+/* AP・支持率を1行にまとめる（ヘックスの縦を圧迫しないため） */
+.tft-cell-meta { display: flex; align-items: center; gap: 4px; }
+/* 支持率バッジ（所有セルは常時表示）。計略の圏内で警告色に変わる */
+.tft-cell-support { font-size: 0.7rem; font-weight: bold; color: #b9c6dd; text-shadow: 0 1px 2px #000; }
+.tft-cell-support.warn   { color: #ffb74a; }
+.tft-cell-support.danger { color: #ff5a5a; }
+/* 敵セルパネルの計略ヒント・対象選択中の案内 */
+.tft-scheme-hint { color: #c084fc; }
+
+/* ボスの本拠地パネル: 守備隊の中身と必要な鍵 */
+.tft-boss-info {
+  border: 1px solid #a855f7; border-left-width: 3px; border-radius: 6px;
+  padding: 0.5rem 0.6rem; margin-top: 0.4rem;
+  display: flex; flex-direction: column; gap: 0.22rem;
+}
+.tft-boss-info.unlocked { border-color: var(--gold); }
+.tft-boss-title { font-weight: bold; color: #c084fc; }
+.tft-boss-info.unlocked .tft-boss-title { color: var(--gold); }
+.tft-boss-howto { color: var(--muted); font-size: 0.72rem; }
+.tft-scheme-targeting {
+  color: #c084fc;
+  border: 1px dashed #c084fc;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  animation: tft-attackable-pulse 1.2s ease-in-out infinite;
+}
+.tft-scheme-research-row { border-top: 1px dashed var(--border); margin-top: 0.4rem; padding-top: 0.5rem; }
+
+/* --- スコアボード --- */
+.tft-scoreboard { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+.tft-score-item {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+  padding: 0.25rem 0.8rem; font-size: 0.82rem;
+}
+.tft-score-item.eliminated { opacity: 0.4; text-decoration: line-through; }
+.tft-score-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* --- サイドパネル --- */
+.tft-side {
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tft-panel-help {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 0.7rem;
+}
+.tft-panel-cell { flex: 1; overflow-y: auto; padding: 0.8rem; }
+
+/* --- 統合セルパネル --- */
+.tft-cellpanel-header {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.6rem 0.8rem; margin-bottom: 0.8rem;
+}
+.tft-cellpanel-title { font-weight: bold; font-size: 1rem; }
+.tft-cellpanel-stats { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+.tft-cellpanel-section { margin-bottom: 0.9rem; }
+.tft-cellpanel-empty { display: flex; flex-direction: column; gap: 0.8rem; }
+.tft-cellpanel-status-row { display: flex; justify-content: flex-end; margin-bottom: 0.6rem; }
+.tft-cellpanel-status-btn {
+  flex-shrink: 0; padding: 0.3rem 0.6rem; font-size: 0.76rem;
+  background: transparent; border: 1px solid var(--gold); border-radius: var(--radius);
+  color: var(--gold); cursor: pointer;
+}
+.tft-cellpanel-status-btn:hover { filter: brightness(1.2); }
+.tft-cellpanel-status-btn.active { background: var(--gold); color: #1a1a1a; }
+.tft-cellpanel-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.8rem; }
+.tft-cellpanel-tab {
+  flex: 1 1 auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; text-align: center; white-space: nowrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  color: inherit; cursor: pointer;
+}
+.tft-cellpanel-tab:hover { filter: brightness(1.2); }
+.tft-cellpanel-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* --- ロスター --- */
+.tft-roster { display: flex; flex-direction: column; gap: 0.4rem; }
+.tft-unit-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.82rem;
+  transition: outline 0.1s; outline: 2px solid transparent;
+}
+.tft-unit-row:hover { filter: brightness(1.2); }
+.tft-unit-info { flex: 1 1 110px; min-width: 110px; display: flex; flex-direction: column; }
+.tft-unit-name { font-weight: bold; white-space: nowrap; }
+.tft-unit-info .unit-classes { white-space: nowrap; overflow: visible; text-overflow: clip; font-size: 0.68rem; }
+.tft-unit-hp { color: var(--muted); font-size: 0.75rem; }
+.tft-unit-hp.tired { color: var(--red); }
+.tft-unit-checkbox { flex-shrink: 0; width: 1.1em; height: 1.1em; cursor: pointer; }
+.tft-unit-dismiss { flex-shrink: 0; padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+/* 駐留一覧のキャラ顔アイコン（系統色ドットの置き換え。枠色=系統色） */
+.tft-unit-face {
+  width: 28px; height: 25px; flex-shrink: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+
+/* --- 内政（開発・研究・雇用・設備） --- */
+.tft-buildings, .tft-research-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.6rem; }
+.tft-building-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.5rem 0.7rem; font-size: 0.85rem;
+}
+.tft-building-info { flex: 1; }
+.tft-building-desc { font-size: 0.72rem; color: var(--muted); }
+
+.tft-construction-progress {
+  background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius);
+  padding: 0.5rem 0.7rem; font-size: 0.78rem; margin-top: 0.2rem;
+}
+.tft-construction-progress-title { font-weight: bold; margin-bottom: 0.3rem; }
+.tft-construction-progress-row { color: var(--muted); padding: 0.1rem 0; }
+
+.tft-hire-list, .tft-facility-list {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;
+}
+.tft-buy-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.45rem 0.55rem; cursor: pointer; font-size: 0.78rem;
+  transition: outline 0.1s; outline: 2px solid transparent;
+}
+.tft-buy-card:hover { filter: brightness(1.2); }
+.tft-buy-card.unaffordable { opacity: 0.4; cursor: not-allowed; }
+.tft-buy-name { font-weight: bold; }
+.tft-buy-desc { color: var(--muted); font-size: 0.7rem; margin: 2px 0; }
+/* 雇用カードの頭（ポートレート＋名前/説明の横並び） */
+.tft-buy-head { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 2px; }
+.tft-buy-head-text { flex: 1; min-width: 0; }
+.tft-buy-portrait { width: 44px; height: 39px; flex: none; }
+.tft-buy-synergy-gain {
+  color: var(--green); font-size: 0.66rem; font-weight: bold; line-height: 1.3;
+  margin: 2px 0; padding: 2px 4px;
+  background: rgba(76, 175, 80, 0.12); border-radius: 3px;
+}
+/* 前進（発動/強化に近づく）表示: 発動の緑より控えめな青系 */
+.tft-buy-synergy-progress {
+  color: #7fb0e6; font-size: 0.64rem; line-height: 1.3;
+  margin: 2px 0; padding: 2px 4px;
+  background: rgba(122, 180, 255, 0.10); border-radius: 3px;
+}
+.tft-buy-cost { color: var(--gold); font-weight: bold; }
+
+/* --- 雇用パネル: 系統アコーディオン＆駐留サマリ --- */
+.tft-hire-lineage-header {
+  display: flex; align-items: center; gap: 0.4rem;
+  cursor: pointer; user-select: none; margin-top: 0.4rem;
+}
+.tft-hire-lineage-header:hover { filter: brightness(1.25); }
+.tft-hire-accordion-mark { font-size: 0.75rem; width: 1em; flex: none; }
+.tft-hire-count {
+  margin-left: auto; font-size: 0.68rem; font-weight: bold;
+  background: rgba(255, 255, 255, 0.12); border-radius: 999px; padding: 0 0.45rem;
+}
+.tft-hire-garrison {
+  margin-bottom: 0.5rem; padding: 0.4rem 0.55rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 0.72rem;
+}
+.tft-hire-garrison-title { font-weight: bold; margin-bottom: 2px; }
+.tft-hire-garrison-names { color: var(--text); margin-bottom: 2px; }
+.tft-hire-garrison-syn { color: var(--green); font-size: 0.68rem; }
+
+/* --- ユニットのレベル --- */
+.tft-unit-lv {
+  display: inline-block; margin: 0 0.25rem; padding: 0 0.35rem; border-radius: 8px;
+  font-size: 0.66rem; font-weight: bold; vertical-align: middle;
+  background: rgba(122, 180, 255, 0.18); color: #7ab4ff; border: 1px solid rgba(122, 180, 255, 0.45);
+}
+.tft-unit-lv.max { background: rgba(251, 191, 36, 0.18); color: var(--gold); border-color: rgba(251, 191, 36, 0.55); }
+/* 訓練セクションのXP進捗バー */
+.tft-xp-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; margin: 0.25rem 0; }
+.tft-xp-bar > span { display: block; height: 100%; background: #7ab4ff; }
+
+/* --- アイテム --- */
+.tft-item-inventory { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.7rem; }
+.tft-item-chip {
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.35rem 0.55rem; font-size: 0.8rem; font-weight: bold;
+}
+.tft-item-count { color: var(--gold); }
+.tft-item-desc { color: var(--muted); font-size: 0.68rem; font-weight: normal; flex-basis: 100%; }
+/* 鍵: 装備も出品もできない特殊アイテムなので、通常アイテムと見た目を分ける */
+.tft-key-chip { border-color: var(--gold); background: rgba(251, 191, 36, 0.08); }
+.tft-item-unit-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.4rem 0.6rem; margin-bottom: 0.35rem; font-size: 0.82rem;
+}
+.tft-item-unit-name { flex: 1; min-width: 0; display: flex; flex-direction: column; font-weight: bold; }
+.tft-item-equipped { color: var(--muted); font-size: 0.68rem; font-weight: normal; }
+.tft-item-select { flex-shrink: 0; max-width: 48%; font-size: 0.74rem; padding: 0.2rem; }
+.tft-unit-item { margin-left: 0.3rem; font-size: 0.9rem; }
+
+/* --- 行動履歴ログ（画面下部） --- */
+.tft-action-log-panel {
+  flex-shrink: 0;
+  height: 320px; /* 「狭くて見づらい」フィードバックにより160→320へ拡大 */
+  padding: 0.6rem 1rem;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.tft-action-log-panel .section-title { margin-bottom: 0.3rem; }
+.tft-action-log {
+  flex: 1;
+  overflow-y: auto;
+  background: #0a0a1a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+}
+.tft-log-row {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.25rem 0.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.tft-log-row.mine { background: rgba(122, 180, 255, 0.08); }
+.tft-log-turn { color: var(--muted); font-size: 0.72rem; flex-shrink: 0; width: 2.6em; }
+.tft-log-text { flex: 1; }
+
+/* --- オークション（常設パネル。tftRenderAuctionPanel が生成） --- */
+.tft-auction-panel {
+  flex-shrink: 0;
+  padding: 0.6rem 1rem 0.8rem;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+.tft-auction-lots {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.tft-auction-card {
+  flex: 1 1 200px;
+  min-width: 180px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+}
+.tft-auction-item { font-weight: bold; margin-bottom: 0.15rem; }
+.tft-auction-desc { color: var(--muted); font-size: 0.72rem; margin-bottom: 0.3rem; }
+.tft-auction-meta { color: var(--muted); font-size: 0.7rem; margin-bottom: 0.2rem; }
+.tft-auction-bid { color: var(--gold); font-weight: bold; margin-bottom: 0.4rem; }
+.tft-item-list-btn { margin-left: auto; }
+
+/* --- ゲームガイド（行動ログの下の常設ヘルプ。tftRenderGameGuide が生成） --- */
+.tft-game-guide {
+  padding: 0.8rem 1rem 1.4rem;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 0.4rem 1.6rem;
+  align-items: start;
+}
+@media (max-width: 900px) { .tft-game-guide { grid-template-columns: 1fr; } }
+.tft-guide-row {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.3rem 0.2rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.tft-guide-row b { flex: 0 0 8.5em; color: var(--gold); font-weight: bold; }
+.tft-guide-row span { flex: 1; color: var(--muted); }
+
+/* --- オーバーレイ・バトルモーダル --- */
+.tft-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.72);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.tft-overlay-box {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem; max-width: 480px; width: 90%; max-height: 80vh; overflow-y: auto;
+}
+.tft-overlay-box h2 { margin-bottom: 1rem; }
+
+.tft-battle-box { max-width: 760px; padding: 0 1.5rem 1.5rem; }
+/* 閉じるボタンを含む上部バー。モーダルが縦に長くスクロールしても常に上部に張り付く */
+.tft-battle-topbar {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; gap: 0.8rem;
+  margin: 0 -1.5rem 0.8rem;
+  padding: 0.8rem 1.5rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.tft-battle-topbar .tft-battle-modal-header { flex: 1; margin-bottom: 0; }
+.tft-battle-close-top { flex-shrink: 0; padding: 0.4rem 0.9rem; }
+/* 速度切替＋スキップ＋閉じるをまとめる右側コントロール群 */
+.tft-battle-controls { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+.tft-battle-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  font-weight: bold; margin-bottom: 0.6rem; font-size: 0.95rem;
+}
+.tft-battle-layout { padding: 0; margin-bottom: 0.8rem; }
+.tft-battle-result-text {
+  text-align: center; font-size: 1.2rem; font-weight: bold;
+  padding: 0.6rem 0; color: var(--gold);
+}
+
+/* --- ルールブック（ロビー/ゲーム中どちらからも開ける読み物ページ。内容は tftRenderRulebook が生成） --- */
+.tft-lobby-buttons { display: flex; gap: 0.6rem; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap; }
+.tft-rulebook-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  width: 100%;
+  overflow-y: auto;
+}
+.tft-rulebook-header {
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 5;
+  background: var(--bg); padding: 0.5rem 0 1rem;
+}
+.tft-rulebook-header .title-logo { font-size: 1.8rem; margin: 0; }
+.tft-rulebook-section { margin-bottom: 1.6rem; }
+.tft-rulebook-section p { color: var(--muted); line-height: 1.7; font-size: 0.88rem; }
+.tft-rulebook-table-wrap { overflow-x: auto; }
+.tft-rulebook-table {
+  width: 100%; border-collapse: collapse; font-size: 0.8rem;
+}
+.tft-rulebook-table th, .tft-rulebook-table td {
+  border: 1px solid var(--border); padding: 0.4rem 0.55rem; text-align: left; vertical-align: top;
+}
+.tft-rulebook-table th { color: var(--gold); background: var(--panel); white-space: nowrap; }
+.tft-rulebook-table td { color: var(--muted); }
+.tft-rulebook-table thead th { text-align: center; }
+
+/* --- オンライン対戦（ルーム作成・参加・待機ロビー。内容は tftRenderOnlineScreen が生成） --- */
+.tft-online-inner {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  width: 100%;
+}
+.tft-online-panel {
+  display: flex; flex-direction: column; gap: 0.8rem;
+  margin-top: 1rem;
+}
+.tft-online-error {
+  color: #ff5a5a; background: rgba(255, 90, 90, 0.1); border: 1px solid rgba(255, 90, 90, 0.4);
+  border-radius: var(--radius); padding: 0.6rem 0.9rem; margin-top: 0.8rem; font-size: 0.85rem;
+}
+.tft-online-label {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  font-size: 0.85rem; font-weight: bold; color: var(--muted);
+}
+.tft-online-label input {
+  font-size: 1rem; padding: 0.5rem 0.7rem; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+}
+.tft-online-room-code {
+  font-size: 2.2rem; font-weight: bold; letter-spacing: 0.15em; text-align: center;
+  color: var(--gold); background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.6rem;
+}
+.tft-online-player-list { display: flex; flex-direction: column; gap: 0.3rem; }
+.tft-online-player-row {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.4rem 0.7rem; font-size: 0.88rem;
+}
+
+/* --- トースト --- */
+.tft-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--gold);
+  border-radius: 999px; padding: 0.55rem 1.4rem;
+  font-size: 0.9rem; font-weight: bold; z-index: 200;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* --- レスポンシブ --- */
+@media (max-width: 860px) {
+  .tft-main { flex-direction: column; align-items: center; overflow-y: auto; }
+  .tft-side { width: 100%; max-width: 520px; }
+}

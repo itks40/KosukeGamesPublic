@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タイセリオン・ファイト・タクティクス (TFT)</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/tft-style.css">
+</head>
+<body>
+
+  <!-- ============ ロビー画面 ============ -->
+  <div id="tft-screen-lobby" class="screen active">
+    <div class="tft-lobby-inner">
+      <h1 class="title-logo">⚔️ タイセリオン・ファイト・タクティクス</h1>
+      <p class="title-sub">ハニカムの大地を制する領土争奪戦 — バトルは TFTBS エンジンで自動解決</p>
+
+      <div class="tft-lobby-panel">
+        <h2 class="section-title">対戦ルーム</h2>
+        <div id="tft-lobby-slots" class="tft-lobby-slots"></div>
+
+        <h2 class="section-title">1ターンの長さ</h2>
+        <div id="tft-turn-length" class="tft-turn-length"></div>
+
+        <div class="tft-lobby-buttons">
+          <button id="tft-btn-start" class="btn btn-primary btn-large">ゲーム開始 ▶</button>
+          <button id="tft-btn-online" class="btn btn-large">🌐 オンライン対戦</button>
+          <button id="tft-btn-rules-lobby" class="btn btn-large">📖 ルールブック</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ゲーム画面 ============ -->
+  <div id="tft-screen-game" class="screen">
+    <header class="tft-hud">
+      <span id="tft-hud-me" class="tft-hud-me">● あなた</span>
+      <span id="tft-hud-turn" class="tft-hud-item">ターン 1</span>
+      <span id="tft-hud-phase" class="tft-phase-badge">進行中</span>
+      <span id="tft-hud-timer" class="tft-timer">--:--</span>
+      <span class="tft-hud-spacer"></span>
+      <span id="tft-hud-gold" class="gold-badge">💰 0G</span>
+      <span id="tft-hud-food" class="tft-food-badge">🌾 0</span>
+      <button id="tft-btn-rules-game" class="btn tft-btn-small">📖</button>
+      <button id="tft-btn-sound" class="btn tft-btn-small">🔊</button>
+    </header>
+    <div id="tft-phase-guide" class="tft-phase-guide"></div>
+
+    <div class="tft-main">
+      <!-- 盤面 -->
+      <div class="tft-board-wrap">
+        <div id="tft-deploy-bar" class="tft-deploy-bar" style="display:none">
+          <span id="tft-deploy-text"></span>
+          <button id="tft-deploy-confirm" class="btn btn-primary tft-btn-small">⚔️ 出陣</button>
+          <button id="tft-deploy-cancel" class="btn tft-btn-small">✕ 取消</button>
+        </div>
+        <div class="tft-board-holder">
+          <div id="tft-board" class="tft-board"></div>
+        </div>
+        <div id="tft-scoreboard" class="tft-scoreboard"></div>
+      </div>
+
+      <!-- サイドパネル（セル選択が全操作の起点。中身は tftRenderCellPanel が丸ごと再構築する） -->
+      <aside class="tft-side">
+        <div id="tft-panel-cell" class="tft-panel-cell"></div>
+      </aside>
+    </div>
+
+    <!-- オークション（AP非依存の常設パネル。毎ターン+1点・最大4点・4ターンで締切） -->
+    <div id="tft-auction-panel" class="tft-auction-panel"></div>
+
+    <!-- 行動履歴ログ（画面下部） -->
+    <div id="tft-action-log-panel" class="tft-action-log-panel">
+      <h3 class="section-title">行動ログ</h3>
+      <div id="tft-action-log" class="tft-action-log"></div>
+    </div>
+
+    <!-- ゲームガイド（ルール・シナジー早見。内容は tftRenderGameGuide が定数から生成） -->
+    <div id="tft-game-guide" class="tft-game-guide"></div>
+
+    <!-- トースト -->
+    <div id="tft-toast" class="tft-toast" style="display:none"></div>
+  </div>
+
+  <!-- ============ バトルモーダル（TFTBSエンジンの演出を再利用） ============ -->
+  <div id="tft-battle-modal" class="tft-overlay" style="display:none">
+    <div class="tft-overlay-box tft-battle-box">
+      <div class="tft-battle-topbar">
+        <div class="tft-battle-modal-header">
+          <span id="tft-battle-atk-label"></span>
+          <span class="vs-divider">VS</span>
+          <span id="tft-battle-def-label"></span>
+        </div>
+        <div class="tft-battle-controls">
+          <div class="battle-speed-control">
+            <button class="speed-btn tft-speed-btn" data-speed="1">×1</button>
+            <button class="speed-btn tft-speed-btn" data-speed="2">×2</button>
+            <button class="speed-btn tft-speed-btn" data-speed="4">×4</button>
+            <button id="tft-battle-skip" class="speed-btn">⏩ スキップ</button>
+          </div>
+          <button id="tft-battle-close" class="btn btn-primary tft-battle-close-top">✕ 閉じる</button>
+        </div>
+      </div>
+      <div class="battle-layout tft-battle-layout">
+        <div class="battle-side player-side">
+          <div id="tft-battle-atk-synergies" class="battle-synergy-bar"></div>
+          <div id="tft-battle-atk-units" class="battle-units"></div>
+        </div>
+        <div class="battle-side cpu-side">
+          <div id="tft-battle-def-synergies" class="battle-synergy-bar"></div>
+          <div id="tft-battle-def-units" class="battle-units"></div>
+        </div>
+      </div>
+      <div id="tft-battle-log" class="battle-log"></div>
+      <div id="tft-battle-result-text" class="tft-battle-result-text"></div>
+    </div>
+  </div>
+
+  <!-- ============ 勝利画面 ============ -->
+  <div id="tft-screen-over" class="screen">
+    <div class="title-inner">
+      <h1 id="tft-winner-text" class="title-logo"></h1>
+      <p id="tft-winner-sub" class="title-sub"></p>
+      <button id="tft-btn-restart" class="btn btn-primary btn-large">ロビーに戻る</button>
+    </div>
+  </div>
+
+  <!-- ============ ルールブック画面（ロビー/ゲーム中どちらからも開ける。内容は tftRenderRulebook が
+       全てバランス定数から生成する読み物版ルール解説。ゲーム中の常設早見ガイド #tft-game-guide とは別物） ============ -->
+  <div id="tft-screen-rules" class="screen">
+    <div class="tft-rulebook-wrap">
+      <header class="tft-rulebook-header">
+        <h1 class="title-logo">📖 ルールブック</h1>
+        <button id="tft-btn-rules-back" class="btn btn-primary">← 戻る</button>
+      </header>
+      <div id="tft-rulebook" class="tft-rulebook"></div>
+    </div>
+  </div>
+
+  <!-- ============ オンライン対戦画面（ルーム作成・参加・待機ロビー。中身は tftRenderOnlineScreen が
+       丸ごと再構築する。ゲーム開始後は tftOnlineEnterGame が通常の #tft-screen-game に合流する） ============ -->
+  <div id="tft-screen-online" class="screen">
+    <div id="tft-online-inner" class="tft-online-inner"></div>
+  </div>
+
+  <!-- 既存TFTBS（変更禁止・依存順） -->
+  <script src="../js/data.js"></script>
+  <script src="../js/synergy.js"></script>
+  <script src="../js/battle.js"></script>
+  <script src="../js/sound.js"></script>
+  <!-- main.js / shop.js / cpu.js は読み込まない（TFT側で独自の初期編成・UIを実装） -->
+
+  <!-- TFT 新規（依存順） -->
+  <script src="js/tft-data.js"></script>
+  <script src="js/tft-state.js"></script>
+  <script src="js/tft-ai.js"></script>
+  <script src="js/tft-battle.js"></script>
+  <script src="js/tft-turn-boundary.js"></script>
+  <script src="js/tft-turn.js"></script>
+  <script src="js/tft-battle-view.js"></script>
+  <script src="js/tft-ui.js"></script>
+  <script src="js/tft-online-client.js"></script>
+  <script src="js/tft-online-ui.js"></script>
+</body>
+</html>

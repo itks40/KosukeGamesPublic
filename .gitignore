@@ -9,5 +9,8 @@ firebase.json
 # Node
 node_modules/
 
+# Wrangler（Cloudflareアカウント情報を含むローカルキャッシュ）
+.wrangler/
+
 # サーバーサイドゲーム（fly.devで運用）
 無個性戦隊風ゲーム/

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タイセリオン・ファイト・タクティクス・バトル・シミュレーター (TFTBS)</title>
+  <link rel="stylesheet" href="css/style.css?v=25">
+</head>
+<body>
+
+  <!-- タイトル画面 -->
+  <div id="screen-title" class="screen active">
+    <div class="title-inner">
+      <h1 class="title-logo">⚔️ TFTBS</h1>
+      <p class="title-sub">タイセリオン・ファイト・タクティクス・バトル・シミュレーター</p>
+      <p class="title-role-prompt">陣営を選んで出撃</p>
+      <div class="role-select">
+        <button id="btn-start-attacker" class="btn btn-large role-btn role-attacker">
+          <span class="role-btn-title">⚔️ 攻撃側</span>
+          <span class="role-btn-gold">資金 25G</span>
+          <span class="role-btn-desc">厚い戦力で攻め落とす</span>
+        </button>
+        <button id="btn-start-defender" class="btn btn-large role-btn role-defender">
+          <span class="role-btn-title">🛡️ 防衛側</span>
+          <span class="role-btn-gold">資金 23G</span>
+          <span class="role-btn-desc">DEF+20% ＋ 防衛設備で守り抜く</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ショップ画面 -->
+  <div id="screen-shop" class="screen">
+    <header class="shop-header">
+      <h2>ショップ</h2>
+      <div class="shop-status">
+        <span id="role-badge" class="role-badge-shop"></span>
+        <span id="gold-display" class="gold-badge">所持金: 25G</span>
+        <span id="team-count" class="team-badge">チーム: 0/5</span>
+      </div>
+    </header>
+
+    <div class="shop-layout">
+      <!-- 左：ショップ -->
+      <section class="shop-section">
+        <h3 class="section-title">ユニット一覧</h3>
+        <div id="shop-grid" class="shop-grid"></div>
+
+        <h3 class="section-title" style="margin-top:1.2rem;">アイテム一覧</h3>
+        <div id="item-shop-grid" class="item-shop-grid"></div>
+
+        <h3 class="section-title synergy-title" id="facility-shop-title" style="margin-top:1.2rem; display:none;">🏰 防衛設備</h3>
+        <div id="facility-shop-grid" class="item-shop-grid" style="display:none;"></div>
+
+        <h3 class="section-title synergy-title" style="margin-top:1.2rem;">シナジー効果一覧</h3>
+        <div class="synergy-guide">
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">ハイパワー</span>
+            <ul>
+              <li>2体：全員 ATK <strong>+20%</strong></li>
+              <li>4体：全員 ATK <strong>+100%</strong></li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">ハイスピード</span>
+            <ul>
+              <li>1体：全員 SPD <strong>+10%</strong></li>
+              <li>3体：全員 SPD <strong>+50%</strong></li>
+              <li>5体：全員 SPD <strong>+150%</strong></li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">ブロッカー</span>
+            <ul>
+              <li>2体：全員 DEF <strong>+35%</strong></li>
+              <li>4体：全員 DEF <strong>+120%</strong></li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">ヒーラー</span>
+            <ul>
+              <li>3体：毎ターン全員 HP <strong>+11</strong> 回復</li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">バーサーカー</span>
+            <ul>
+              <li>2体：HP50%以下で ATK <strong>+50%</strong></li>
+              <li>4体：HP50%以下で ATK <strong>+150%</strong></li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">ブローラー</span>
+            <ul>
+              <li>2体：全員 HP <strong>+25%</strong></li>
+              <li>4体：全員 HP <strong>+60%</strong></li>
+            </ul>
+          </div>
+          <div class="synergy-guide-item">
+            <span class="synergy-guide-name">聖なる盾</span>
+            <ul>
+              <li>2体：開幕に全員 HP <strong>22%</strong> のシールド付与</li>
+              <li>（敵から5回被弾でシールド消滅）</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右：チーム編成 + シナジー -->
+      <aside class="team-section">
+        <h3 class="section-title">チーム編成</h3>
+        <div id="team-slots" class="team-slots"></div>
+
+        <h3 class="section-title synergy-title">シナジー</h3>
+        <div id="synergy-list" class="synergy-list"></div>
+
+        <button id="btn-battle" class="btn btn-primary btn-battle" disabled>出陣する ▶</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- バトル画面 -->
+  <div id="screen-battle" class="screen">
+    <header class="battle-header">
+      <h2>バトル</h2>
+      <div class="battle-header-controls">
+        <div class="battle-speed-control">
+          <button class="speed-btn" data-speed="1">×1</button>
+          <button class="speed-btn" data-speed="2">×2</button>
+          <button class="speed-btn" data-speed="4">×4</button>
+          <button id="btn-battle-skip" class="speed-btn">⏩ スキップ</button>
+        </div>
+        <button id="btn-sound" class="sound-toggle">🔊 ON</button>
+      </div>
+    </header>
+
+    <div class="battle-layout">
+      <!-- プレイヤーチーム -->
+      <div class="battle-side player-side">
+        <h3 class="side-label">プレイヤー <span id="player-role-tag" class="role-tag"></span></h3>
+        <div id="player-synergies" class="battle-synergy-bar"></div>
+        <div id="player-facilities" class="battle-facility-bar"></div>
+        <div id="player-units" class="battle-units"></div>
+      </div>
+
+      <!-- VS -->
+      <div class="vs-divider">VS</div>
+
+      <!-- CPUチーム -->
+      <div class="battle-side cpu-side">
+        <h3 class="side-label">CPU <span id="cpu-role-tag" class="role-tag"></span></h3>
+        <div id="cpu-synergies" class="battle-synergy-bar"></div>
+        <div id="cpu-facilities" class="battle-facility-bar"></div>
+        <div id="cpu-units" class="battle-units"></div>
+      </div>
+    </div>
+
+    <!-- バトルログ -->
+    <div class="log-section">
+      <h3 class="section-title">バトルログ</h3>
+      <div id="battle-log" class="battle-log"></div>
+    </div>
+
+    <!-- 結果 -->
+    <div id="battle-result" class="battle-result hidden">
+      <div class="result-text"></div>
+      <button id="btn-retry" class="btn btn-primary">もう一度</button>
+    </div>
+  </div>
+
+  <script src="js/data.js?v=25"></script>
+  <script src="js/synergy.js?v=25"></script>
+  <script src="js/battle.js?v=25"></script>
+  <script src="js/cpu.js?v=25"></script>
+  <script src="js/shop.js?v=25"></script>
+  <script src="js/sound.js?v=25"></script>
+  <script src="js/main.js?v=25"></script>
+</body>
+</html>

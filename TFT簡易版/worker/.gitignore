@@ -1,0 +1,4 @@
+node_modules/
+.wrangler/
+src/generated/game-logic.js
+.dev.vars

@@ -1,0 +1,29 @@
+name = "tft-online-api"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# --- Durable Object: ゲーム1つ=1インスタンス。SQLiteストレージクラスは無料プランで利用可能 ---
+[[durable_objects.bindings]]
+name = "TFT_GAME_ROOM"
+class_name = "TftGameRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TftGameRoom"]
+
+# --- D1: ルーム・認証台帳のみ（ゲーム本体のstateはDurable Object storageに持つ） ---
+[[d1_databases]]
+binding = "DB"
+database_name = "tft-online"
+database_id = "41358b41-f8d1-4c4a-95ef-ffec7397de14"
+
+# --- 安全網Cron: DO Alarmの取りこぼしに備え、超過ゲームをスキャンして強制チェックを送る ---
+[triggers]
+crons = ["*/30 * * * *"]
+
+[vars]
+# 配信元のオリジンをカンマ区切りで列挙する。Pages本番と、KosukeGames（GitHub Pages）の
+# 2か所から同じゲームを配信しているため両方を許可。デプロイのたびに変わる
+# プレビューURL（<hash>.tft-online.pages.dev）はここでは許可しない――
+# プレイヤーは常に安定した本番URLからアクセスする想定。
+ALLOWED_ORIGIN = "https://tft-online.pages.dev,https://itks40.github.io"

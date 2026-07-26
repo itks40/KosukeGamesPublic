@@ -1,0 +1,1135 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #1a1a2e;
+  --panel: #16213e;
+  --card: #0f3460;
+  --accent: #e94560;
+  --gold: #f5a623;
+  --green: #4caf50;
+  --red: #f44336;
+  --text: #eaeaea;
+  --muted: #8899aa;
+  --border: #2a3a5a;
+  --radius: 8px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* --- 画面切り替え --- */
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* --- タイトル --- */
+#screen-title {
+  align-items: center;
+  justify-content: center;
+}
+.title-inner { text-align: center; }
+.title-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+.title-sub { color: var(--muted); margin-bottom: 2rem; }
+
+/* --- ボタン --- */
+.btn {
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: opacity 0.15s;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:not(:disabled):hover { opacity: 0.85; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-large { padding: 1rem 2.5rem; font-size: 1.2rem; }
+
+/* --- ショップ画面 --- */
+.shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.2rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.shop-header h2 { font-size: 1.2rem; }
+.shop-status { display: flex; gap: 0.8rem; }
+
+.gold-badge, .team-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.gold-badge { background: var(--gold); color: #1a1a1a; }
+.team-badge { background: var(--card); border: 1px solid var(--border); }
+
+.shop-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+}
+
+.shop-section {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.team-section {
+  width: 280px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  background: var(--panel);
+}
+
+.section-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* --- ショップグリッド --- */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+
+/* --- キャラ画像スプライト（image/charactor.png 8列×6行） ---
+   使用側は unitSpriteStyle(unit)（js/data.js）で background-position を渡す。
+   TFT側も ../css/style.css 経由でこの定義を共有する（urlはCSSファイル基準で解決）。 */
+.unit-sprite {
+  background-image: url(../image/charactor.png);
+  background-size: 800% 600%;
+  background-repeat: no-repeat;
+  border-radius: 6px;
+}
+
+/* --- ショップカードのキャラ画像（スプライトのセル比 192:170.67 ≒ 9:8） --- */
+.unit-card-portrait {
+  width: 100%;
+  aspect-ratio: 9 / 8;
+  margin-bottom: 0.45rem;
+}
+
+/* --- チーム編成スロットのキャラ画像（名前・コストと横並び） --- */
+.team-slot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.team-slot-portrait {
+  width: 48px;
+  height: 43px;
+  flex: none;
+}
+
+.unit-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem 0.7rem;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  position: relative;
+}
+.unit-card:hover:not(.in-team):not(.unaffordable) {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.unit-card.in-team {
+  border-color: var(--green);
+  opacity: 0.7;
+  cursor: default;
+}
+.unit-card.unaffordable { opacity: 0.4; cursor: not-allowed; }
+
+.unit-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 0.2rem; }
+.unit-cost { color: var(--gold); font-weight: bold; font-size: 0.9rem; margin-bottom: 0.4rem; }
+.unit-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.1rem 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.unit-stars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.unit-stars > div { display: flex; align-items: center; gap: 0.2rem; }
+.star-label { color: var(--muted); font-size: 0.7rem; width: 2.2em; flex-shrink: 0; }
+.star-filled { color: var(--gold); letter-spacing: -0.05em; }
+.star-empty  { color: #3a4a6a;   letter-spacing: -0.05em; }
+
+.unit-classes {
+  font-size: 0.72rem;
+  color: #a0b0d0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.unit-skill {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px dashed var(--border);
+}
+.unit-skill-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.unit-skill-name {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #a78bfa;
+}
+.skill-mp-badge {
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: #818cf8;
+  background: rgba(129, 140, 248, 0.15);
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  border-radius: 4px;
+  padding: 0.02rem 0.3rem;
+  white-space: nowrap;
+}
+.unit-skill-desc {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+/* ランクに応じてスキル名の色を変える（低ランク=金、中=赤/紫、R8ヒーロー=虹） */
+.unit-card:has(.rank-3) .unit-skill-name,
+.unit-card:has(.rank-4) .unit-skill-name { color: var(--gold); }
+.unit-card:has(.rank-5) .unit-skill-name,
+.unit-card:has(.rank-6) .unit-skill-name { color: #ff6b8a; }
+.unit-card:has(.rank-7) .unit-skill-name { color: #d8b4fe; }
+.unit-card:has(.rank-8) .unit-skill-name {
+  background: linear-gradient(90deg, #ffe9a8, #ff6b8a, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.in-team-label {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+/* --- チームスロット --- */
+.team-slots { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.team-slot {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.team-slot.empty { border-style: dashed; opacity: 0.4; }
+.team-slot.filled { border-color: var(--accent); }
+
+.empty-label { color: var(--muted); font-size: 0.8rem; text-align: center; }
+.sell-btn {
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  background: transparent;
+  border: 1px solid #f44336;
+  color: #f44336;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  align-self: flex-start;
+  transition: background 0.15s;
+}
+.sell-btn:hover { background: #f4433622; }
+
+/* --- シナジー効果一覧 --- */
+.synergy-guide {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+.synergy-guide-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.6rem;
+}
+.synergy-guide-name {
+  display: block;
+  font-weight: bold;
+  color: var(--gold);
+  margin-bottom: 0.2rem;
+  font-size: 0.8rem;
+}
+.synergy-guide ul {
+  padding-left: 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.synergy-guide li {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.synergy-guide li strong {
+  color: var(--green);
+}
+
+/* --- シナジー --- */
+.synergy-list { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.synergy-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  background: var(--card);
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+.synergy-item.active { opacity: 1; border-left: 3px solid var(--green); }
+.synergy-class { font-weight: bold; min-width: 90px; }
+.synergy-count { color: var(--gold); min-width: 30px; }
+.synergy-effect { color: var(--muted); font-size: 0.75rem; }
+.synergy-item.active .synergy-effect { color: var(--green); }
+
+.btn-battle {
+  margin-top: auto;
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1.05rem;
+}
+
+/* --- バトル画面 --- */
+.battle-header {
+  padding: 0.8rem 1.2rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.battle-header h2 { font-size: 1.2rem; }
+
+.battle-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  position: relative; /* スキルカットイン（absolute）の基準 */
+}
+
+.battle-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.side-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+.player-side .side-label { color: #7ab4ff; }
+.cpu-side .side-label { color: #ff8a80; }
+
+.vs-divider {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--muted);
+  align-self: center;
+  padding: 0 0.5rem;
+}
+
+/* --- シールドバー（聖なる盾） --- */
+.shield-bar-wrap {
+  background: #1a1a0a;
+  border-radius: 3px;
+  height: 5px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.shield-bar {
+  height: 100%;
+  background: #fbbf24;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 4px rgba(251, 191, 36, 0.6);
+}
+
+/* --- MPバー（スキル使用可能回数。スキル持ちユニットのみ表示） --- */
+.mp-bar-wrap {
+  background: #12122a;
+  border-radius: 3px;
+  height: 5px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.mp-bar {
+  height: 100%;
+  background: #818cf8;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 4px rgba(129, 140, 248, 0.6);
+}
+.float-shield { color: #fbbf24; font-size: 1.1rem; }
+.log-shield { color: #fbbf24; }
+.log-skill  { color: #a78bfa; }
+.float-skill {
+  color: #a78bfa;
+  font-size: 1.05rem;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.9);
+}
+
+/* --- スキル発動エフェクト（紫グロー＋一瞬の拡大） --- */
+@keyframes skill-flash {
+  0%   { box-shadow: 0 0 0 rgba(167, 139, 250, 0); transform: scale(1); }
+  30%  { box-shadow: 0 0 20px rgba(167, 139, 250, 0.95); transform: scale(1.05); }
+  100% { box-shadow: 0 0 0 rgba(167, 139, 250, 0); transform: scale(1); }
+}
+.battle-unit.skill-flash {
+  animation: skill-flash 0.55s ease;
+  border-color: #a78bfa;
+}
+
+/* --- バトル画面シナジーバー --- */
+.battle-synergy-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-height: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+.battle-syn-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  border-radius: 4px;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.syn-name   { font-weight: bold; color: var(--text); }
+.syn-count  { color: var(--gold); }
+.syn-effect { color: var(--green); }
+
+/* --- バトルユニットカード --- */
+.battle-units { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.battle-unit {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  position: relative;
+  transition: opacity 0.3s, border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.battle-unit-portrait {
+  width: 64px;
+  height: 57px;
+  flex: none;
+  transition: filter 0.3s, transform 0.15s;
+}
+.battle-unit-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.battle-unit.dead {
+  opacity: 0.3;
+  border-style: dashed;
+}
+.battle-unit.dead .battle-unit-portrait { filter: grayscale(1) brightness(0.7); }
+
+.hp-bar-wrap {
+  position: relative;
+  background: #1a2a1a;
+  border-radius: 4px;
+  height: 10px;
+  margin: 0.3rem 0;
+  overflow: hidden;
+}
+/* 残像バー（格ゲー風ディレイバー）: 本体の下層で遅れて縮む */
+.hp-bar-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: #ff5a5a;
+  border-radius: 4px;
+  z-index: 1;
+  transition: width 0.55s ease 0.25s;
+}
+.hp-bar {
+  position: relative;
+  height: 100%;
+  background: var(--green);
+  border-radius: 4px;
+  z-index: 2;
+  transition: width 0.25s ease;
+}
+.hp-bar.hp-high { background: var(--green); }
+.hp-bar.hp-mid  { background: var(--gold); }
+.hp-bar.hp-low  { background: var(--red); animation: hp-critical 0.7s ease-in-out infinite; }
+.hp-text { font-size: 0.75rem; color: var(--muted); }
+
+/* --- バトルログ --- */
+.log-section {
+  padding: 0 1rem 1rem;
+  flex: 1;
+}
+.battle-log {
+  background: #0a0a1a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem;
+  height: 200px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.log-line { padding: 0.1rem 0; }
+.log-attack { color: #ffcc80; }
+.log-heal { color: #80ff80; }
+
+/* --- 結果 --- */
+.battle-result {
+  text-align: center;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.battle-result.hidden { display: none; }
+.result-text { font-size: 2.5rem; font-weight: bold; }
+.result-win .result-text { color: var(--gold); }
+.result-lose .result-text { color: var(--red); }
+.result-draw .result-text { color: var(--muted); }
+
+/* --- トースト --- */
+#toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #333;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  z-index: 1000;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- スクロールバー --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ============================================================
+   バトル演出（ケレン味たっぷり）
+   ============================================================ */
+
+/* --- 攻撃ランジ（相手方向へ大きく踏み込んで戻る） --- */
+@keyframes lunge-right {
+  0%   { transform: translateX(0); }
+  40%  { transform: translateX(28px) rotate(1.5deg) scale(1.07); }
+  100% { transform: translateX(0); }
+}
+@keyframes lunge-left {
+  0%   { transform: translateX(0); }
+  40%  { transform: translateX(-28px) rotate(-1.5deg) scale(1.07); }
+  100% { transform: translateX(0); }
+}
+.battle-unit.lunge-right { animation: lunge-right 0.3s ease; z-index: 5; }
+.battle-unit.lunge-left  { animation: lunge-left 0.3s ease; z-index: 5; }
+/* 攻撃時はポートレートも一瞬ズーム */
+.battle-unit.lunge-right .battle-unit-portrait,
+.battle-unit.lunge-left  .battle-unit-portrait { transform: scale(1.12); }
+
+/* --- 被弾（揺れ＋赤フラッシュ＋白閃光） --- */
+@keyframes hit-shake {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  15% { transform: translateX(-11px); filter: brightness(1.9); }
+  35% { transform: translateX(9px); filter: brightness(1.4); }
+  55% { transform: translateX(-7px); filter: brightness(1.1); }
+  80% { transform: translateX(4px); filter: brightness(1); }
+}
+.battle-unit.hit {
+  animation: hit-shake 0.3s ease;
+  border-color: var(--red);
+  box-shadow: 0 0 14px rgba(244, 67, 54, 0.85);
+  background: #3a1622;
+}
+
+/* --- 撃破（白閃光→傾いて崩れ落ちる） --- */
+@keyframes defeat {
+  0%   { transform: scale(1) rotate(0); opacity: 1; filter: brightness(1); }
+  18%  { transform: scale(1.08) rotate(1deg); opacity: 1; filter: brightness(2.4); }
+  100% { transform: scale(0.5) rotate(-16deg) translateY(10px); opacity: 0.12; filter: brightness(0.6); }
+}
+.battle-unit.defeated { animation: defeat 0.55s ease forwards; }
+
+/* --- 覚醒オーラ（赤いパルス） --- */
+@keyframes berserk-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(233, 69, 96, 0.5); }
+  50%      { box-shadow: 0 0 20px rgba(233, 69, 96, 1); }
+}
+.battle-unit.berserk-aura {
+  animation: berserk-pulse 0.9s ease-in-out infinite;
+  border-color: var(--accent);
+}
+
+/* --- 回復フラッシュ（緑に光る） --- */
+@keyframes heal-flash {
+  0%   { box-shadow: 0 0 0 rgba(76, 175, 80, 0); }
+  40%  { box-shadow: 0 0 18px rgba(76, 175, 80, 0.9); background: rgba(76, 175, 80, 0.18); }
+  100% { box-shadow: 0 0 0 rgba(76, 175, 80, 0); }
+}
+.battle-unit.heal-flash { animation: heal-flash 0.5s ease; }
+
+/* --- 瀕死HPバーの点滅 --- */
+@keyframes hp-critical {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* --- 画面シェイク --- */
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 4px); }
+  40% { transform: translate(5px, -5px); }
+  60% { transform: translate(-4px, 3px); }
+  80% { transform: translate(4px, -3px); }
+}
+.battle-layout.screen-shake { animation: screen-shake 0.35s ease; }
+
+/* --- フローティングテキスト（ダメージ／回復／覚醒） --- */
+.float-text {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
+  animation: float-up 0.85s ease forwards;
+}
+@keyframes float-up {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20%  { opacity: 1; transform: translate(-50%, -12px) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -40px) scale(1); }
+}
+.float-dmg       { color: #ffd54a; font-size: 1.35rem; }
+/* ダメージ量に応じたサイズ階層（20以上=mid, 40以上=big） */
+.float-dmg.dmg-mid { font-size: 1.6rem; color: #ffb74a; }
+.float-dmg.dmg-big { font-size: 1.9rem; color: #ff8a3b; animation: float-up-big 0.9s ease forwards; }
+.float-dmg.crit  { color: #ff3b3b; font-size: 2.2rem; text-shadow: 0 0 14px rgba(255, 59, 59, 0.9), 0 2px 5px rgba(0,0,0,0.85); animation: float-up-big 0.9s ease forwards; }
+@keyframes float-up-big {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+  15%  { opacity: 1; transform: translate(-52%, -10px) scale(1.35); }
+  25%  { transform: translate(-48%, -14px) scale(1.2); }
+  35%  { transform: translate(-51%, -18px) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -48px) scale(1.05); }
+}
+.float-heal      { color: #6dffa0; font-size: 1.35rem; }
+.float-awaken    { color: #ff6b9d; font-size: 1.15rem; }
+
+/* --- 結果演出 --- */
+.battle-result:not(.hidden) .result-text {
+  animation: result-zoom 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes result-zoom {
+  0%   { opacity: 0; transform: scale(0.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.result-win  .result-text { color: var(--gold); text-shadow: 0 0 22px rgba(245, 166, 35, 0.9); }
+.result-lose .result-text { color: var(--red);  text-shadow: 0 0 16px rgba(244, 67, 54, 0.7); }
+.result-draw .result-text { color: var(--muted); }
+
+/* 勝利の紙吹雪 */
+.confetti {
+  position: fixed;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  z-index: 2000;
+  pointer-events: none;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20px) rotateZ(0); opacity: 1; }
+  100% { transform: translateY(100vh) rotateZ(720deg); opacity: 0.9; }
+}
+
+/* 敗北のビネット */
+.vignette-lose {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1500;
+  background: radial-gradient(ellipse at center, transparent 28%, rgba(120, 0, 0, 0.6) 100%);
+  opacity: 0;
+  animation: vignette-in 0.8s ease forwards;
+}
+@keyframes vignette-in { to { opacity: 1; } }
+
+/* --- スキル発動カットイン（発動者ポートレートが横からスライドイン） --- */
+.skill-cutin {
+  position: absolute;
+  top: 32%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 1.1rem;
+  background: linear-gradient(90deg, rgba(20, 12, 48, 0.94), rgba(88, 48, 160, 0.88));
+  border: 1px solid #a78bfa;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.55);
+  z-index: 40;
+  pointer-events: none;
+}
+.skill-cutin.from-left  { left: 4%;  animation: cutin-left 0.7s ease forwards; }
+.skill-cutin.from-right { right: 4%; animation: cutin-right 0.7s ease forwards; }
+@keyframes cutin-left {
+  0%   { opacity: 0; transform: translateX(-70px) skewX(-6deg); }
+  18%  { opacity: 1; transform: translateX(0) skewX(-6deg); }
+  82%  { opacity: 1; transform: translateX(0) skewX(-6deg); }
+  100% { opacity: 0; transform: translateX(40px) skewX(-6deg); }
+}
+@keyframes cutin-right {
+  0%   { opacity: 0; transform: translateX(70px) skewX(6deg); }
+  18%  { opacity: 1; transform: translateX(0) skewX(6deg); }
+  82%  { opacity: 1; transform: translateX(0) skewX(6deg); }
+  100% { opacity: 0; transform: translateX(-40px) skewX(6deg); }
+}
+.skill-cutin-portrait {
+  width: 108px;
+  height: 96px;
+  border: 2px solid #a78bfa;
+}
+.skill-cutin-name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #e6dcff;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 1);
+  white-space: nowrap;
+}
+
+/* --- リザルトの生存ユニットポートレート列 --- */
+.result-portraits {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.result-portraits .unit-sprite {
+  width: 72px;
+  height: 64px;
+  border: 2px solid var(--gold);
+  animation: result-zoom 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.result-portraits .unit-sprite:nth-child(2) { animation-delay: 0.08s; }
+.result-portraits .unit-sprite:nth-child(3) { animation-delay: 0.16s; }
+.result-portraits .unit-sprite:nth-child(4) { animation-delay: 0.24s; }
+.result-portraits .unit-sprite:nth-child(5) { animation-delay: 0.32s; }
+
+/* --- 音量トグルボタン --- */
+.sound-toggle {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.sound-toggle:hover { border-color: var(--accent); }
+.battle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --- バトル速度切替（×1/×2/×4） --- */
+.battle-header-controls { display: flex; align-items: center; gap: 0.6rem; }
+.battle-speed-control { display: flex; gap: 0.3rem; }
+.speed-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: bold;
+}
+.speed-btn:hover { border-color: var(--accent); }
+.speed-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ============================================================
+   v0.2.0 — 系統・ランクシステム
+   ============================================================ */
+
+/* --- battle-unit: スプライトポートレート＋ボディの横並び --- */
+.battle-unit {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.45rem 0.8rem 0.45rem 0.5rem;
+}
+
+/* --- ショップグリッド: 系統別グループ表示に変更 --- */
+.shop-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* --- 系統ヘッダー --- */
+.lineage-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius);
+  font-weight: bold;
+  font-size: 0.88rem;
+  border-left: 4px solid;
+  margin-top: 0.2rem;
+}
+.lineage-header[data-lineage="warrior"] { color: #7ab4ff; background: rgba(122,180,255,0.08); border-left-color: #7ab4ff; }
+.lineage-header[data-lineage="mage"]    { color: #c084fc; background: rgba(192,132,252,0.08); border-left-color: #c084fc; }
+.lineage-header[data-lineage="rogue"]   { color: #4ade80; background: rgba(74,222,128,0.08);  border-left-color: #4ade80; }
+.lineage-header[data-lineage="archer"]  { color: #86efac; background: rgba(134,239,172,0.08); border-left-color: #86efac; }
+.lineage-header[data-lineage="monk"]    { color: #fbbf24; background: rgba(251,191,36,0.08);  border-left-color: #fbbf24; }
+.lineage-header[data-lineage="goblin"]  { color: #d4a017; background: rgba(161,98,7,0.12);    border-left-color: #a16207; }
+.lineage-icon  { font-size: 1rem; }
+.lineage-label { flex: 1; }
+
+/* --- 系統行: カードを横並び --- */
+.lineage-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.lineage-row .unit-card {
+  flex: 0 0 160px;
+  max-width: 200px;
+}
+
+/* --- カードの系統カラーボーダー --- */
+.unit-card[data-lineage="warrior"] { border-left: 3px solid #7ab4ff; }
+.unit-card[data-lineage="mage"]    { border-left: 3px solid #c084fc; }
+.unit-card[data-lineage="rogue"]   { border-left: 3px solid #4ade80; }
+.unit-card[data-lineage="archer"]  { border-left: 3px solid #86efac; }
+.unit-card[data-lineage="monk"]    { border-left: 3px solid #fbbf24; }
+.unit-card[data-lineage="goblin"]  { border-left: 3px solid #a16207; }
+.no-synergy { color: var(--muted); font-style: italic; }
+
+/* --- カード内バッジエリア --- */
+.unit-card-badges {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.2rem;
+}
+
+/* --- ランクバッジ --- */
+.rank-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 0.08rem 0.3rem;
+  border-radius: 4px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+}
+/* 8ランクの配色ランプ（低=灰→青→緑→金→赤→紫→R8=虹ヒーロー） */
+.rank-1 { background: rgba(100,116,139,0.2);  color: #94a3b8; border: 1px solid #475569; }
+.rank-2 { background: rgba(100,116,139,0.28); color: #cbd5e1; border: 1px solid #64748b; }
+.rank-3 { background: rgba(56,189,248,0.16);  color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
+.rank-4 { background: rgba(74,222,128,0.16);  color: #86efac; border: 1px solid rgba(74,222,128,0.45); }
+.rank-5 { background: rgba(245,166,35,0.2);   color: var(--gold);  border: 1px solid rgba(245,166,35,0.5); }
+.rank-6 { background: rgba(233,69,96,0.2);    color: #ff6b8a; border: 1px solid rgba(233,69,96,0.5); box-shadow: 0 0 6px rgba(233,69,96,0.25); }
+.rank-7 { background: rgba(192,132,252,0.2);  color: #d8b4fe; border: 1px solid rgba(192,132,252,0.55); box-shadow: 0 0 6px rgba(192,132,252,0.3); }
+.rank-8 {
+  background: linear-gradient(90deg, rgba(245,166,35,0.25), rgba(233,69,96,0.25), rgba(192,132,252,0.25));
+  color: #ffe9a8;
+  border: 1px solid rgba(255,233,168,0.6);
+  box-shadow: 0 0 8px rgba(255,215,120,0.5);
+  animation: hero-glow 1.6s ease-in-out infinite;
+}
+@keyframes hero-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,215,120,0.5); }
+  50%      { box-shadow: 0 0 14px rgba(255,215,120,0.9); }
+}
+/* ヒーロー（R8）カードの外枠も金色に強調 */
+.unit-card:has(.rank-8) { border-color: #ffd27a; }
+
+/* --- チームスロットの系統・ランク表示 --- */
+.slot-top {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+.lineage-badge {
+  font-size: 0.65rem;
+  padding: 0.08rem 0.3rem;
+  border-radius: 3px;
+  color: var(--lc, var(--muted));
+  border: 1px solid var(--lc, var(--border));
+  background: transparent;
+}
+
+/* ============================================================
+   アイテムシステム
+   ============================================================ */
+
+/* --- ショップのアイテム購入グリッド --- */
+.item-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.6rem;
+}
+.item-shop-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.item-shop-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.item-shop-card.unaffordable { opacity: 0.4; cursor: not-allowed; }
+.item-shop-icon { font-size: 1.4rem; margin-bottom: 0.2rem; }
+.item-shop-name { font-weight: bold; font-size: 0.78rem; margin-bottom: 0.15rem; }
+.item-shop-desc { font-size: 0.68rem; color: var(--muted); margin-bottom: 0.3rem; min-height: 1.6em; }
+.item-shop-cost { color: var(--gold); font-weight: bold; font-size: 0.8rem; }
+.item-owned-badge {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.62rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 999px;
+}
+
+/* --- チームスロット内の装備表示 --- */
+.item-current {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.item-unequip-btn {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 3px;
+  font-size: 0.65rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.item-unequip-btn:hover { background: rgba(244, 67, 54, 0.15); }
+
+/* --- 所持アイテムから装備を選ぶピッカー --- */
+.item-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin: 0.3rem 0;
+}
+.item-picker-empty { font-size: 0.68rem; color: var(--muted); }
+.item-btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.item-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.item-btn.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 6px rgba(245, 166, 35, 0.6);
+  background: rgba(245, 166, 35, 0.12);
+}
+.item-btn-count {
+  position: absolute;
+  bottom: -0.3rem;
+  right: -0.3rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.55rem;
+  padding: 0 0.25rem;
+  color: var(--muted);
+}
+
+/* ============================================================
+   v0.4.0 — 防衛拠点（攻撃側/防衛側）と防衛設備
+   ============================================================ */
+
+/* --- タイトルの役割選択 --- */
+.title-role-prompt { color: var(--muted); margin-bottom: 1.2rem; font-size: 0.95rem; }
+.role-select {
+  display: flex;
+  gap: 1.2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.role-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 220px;
+  padding: 1.2rem 1.6rem;
+  color: #fff;
+  border: 2px solid transparent;
+}
+.role-btn-title { font-size: 1.3rem; font-weight: bold; }
+.role-btn-gold  { font-size: 0.95rem; color: var(--gold); font-weight: bold; }
+.role-btn-desc  { font-size: 0.78rem; opacity: 0.9; }
+.role-btn.role-attacker { background: rgba(233, 69, 96, 0.22); border-color: var(--accent); }
+.role-btn.role-defender { background: rgba(122, 180, 255, 0.18); border-color: #7ab4ff; }
+.role-btn.role-attacker:not(:disabled):hover { background: rgba(233, 69, 96, 0.35); }
+.role-btn.role-defender:not(:disabled):hover { background: rgba(122, 180, 255, 0.30); }
+
+/* --- ショップの役割バッジ（クリックで切替） --- */
+.role-badge-shop {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.15s, transform 0.1s;
+}
+.role-badge-shop:hover { filter: brightness(1.25); transform: translateY(-1px); }
+.role-badge-shop:active { transform: translateY(0); }
+.role-badge-shop.role-attacker { background: rgba(233, 69, 96, 0.2); border-color: var(--accent); }
+.role-badge-shop.role-defender { background: rgba(122, 180, 255, 0.2); border-color: #7ab4ff; }
+
+/* --- 防衛設備カード（アイテムグリッドを流用） --- */
+.facility-shop-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.facility-shop-card:hover { border-color: #7ab4ff; transform: translateY(-2px); }
+.facility-shop-card.unaffordable { opacity: 0.4; cursor: not-allowed; }
+.facility-shop-card.owned { border-color: #7ab4ff; background: rgba(122, 180, 255, 0.14); }
+
+/* --- バトル画面の役割タグ＆設備バー --- */
+.role-tag {
+  font-size: 0.72rem;
+  font-weight: bold;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.role-tag.role-attacker { background: rgba(233, 69, 96, 0.25); color: #ff8fa3; }
+.role-tag.role-defender { background: rgba(122, 180, 255, 0.25); color: #a9cbff; }
+.battle-facility-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-height: 0;
+  margin-bottom: 0.4rem;
+}
+.battle-facility-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(122, 180, 255, 0.12);
+  border: 1px solid rgba(122, 180, 255, 0.45);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.battle-facility-badge .fac-name { color: #a9cbff; }
+
+/* --- 設備の演出（フロート文字・ログ色） --- */
+.float-facility { color: #7ab4ff; font-size: 1.1rem; }
+.log-facility { color: #7ab4ff; }

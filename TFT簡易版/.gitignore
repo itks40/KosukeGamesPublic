@@ -1,0 +1,11 @@
+# Playwright MCP の生成物（スナップショット・スクリーンショット・コンソールログ）
+.playwright-mcp/
+
+# ログ・一時ファイル
+*.log
+*.tmp
+
+# OS / エディタのゴミ
+.DS_Store
+Thumbs.db
+desktop.ini

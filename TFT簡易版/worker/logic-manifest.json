@@ -1,0 +1,19 @@
+{
+  "files": [
+    "../js/data.js",
+    "../js/synergy.js",
+    "../js/battle.js",
+    "../tft/js/tft-data.js",
+    "../tft/js/tft-state.js",
+    "../tft/js/tft-ai.js",
+    "../tft/js/tft-battle.js",
+    "../tft/js/tft-turn-boundary.js"
+  ],
+  "extraExports": [
+    "UNITS_DATA", "CLASSES", "LINEAGES", "ITEMS", "ITEMS_LIST", "FACILITIES_LIST",
+    "SYNERGY_RULES", "STAT_TIERS", "MAX_TEAM_SIZE", "MAX_RANK", "MP_BY_RANK",
+    "DEFENSE_CONSTANT", "DEFENDER_DEF_BONUS",
+    "unitMaxMp", "runBattle", "buildSideModifiers", "applyStatSynergies",
+    "getActiveSynergies", "countClasses"
+  ]
+}
