@@ -170,6 +170,17 @@ function tftRenderHud(state) {
   turnEl.classList.toggle('harvest-month', tftIsFoodHarvestTurn(state.turn));
   turnEl.classList.toggle('income-month', tftIsGoldIncomeTurn(state.turn));
 
+  // 開幕保護のバッジ。保護が明けたら消す（期間中だけ出る一時的な表示）。
+  const protectEl = document.getElementById('tft-hud-protect');
+  const protecting = tftIsHomeProtectTurn(state.turn);
+  protectEl.hidden = !protecting;
+  if (protecting) {
+    const left = tftHomeProtectMonthsLeft(state.turn);
+    protectEl.textContent = `🛡️ 本拠地保護 あと${left}ヶ月`;
+    protectEl.title = `開幕${TFT_HOME_PROTECT_YEARS}年のあいだ、全勢力の本拠地は侵攻も計略も通りません（CPU・人間とも同条件）。`
+      + `${TFT_HOME_PROTECT_YEARS + 1}年1月＝ターン${TFT_HOME_PROTECT_LAST_TURN + 1}から解禁されます`;
+  }
+
   // 金は収入月（1/4/7/10月）にまとめて入る。次の収入月と金額を併記。
   const goldIncome = tftCellCount(state, tftUi.myPlayerId) * TFT_INCOME_PER_CELL
     + tftBuildingIncomeSum(state, tftUi.myPlayerId, 'town');
@@ -308,11 +319,14 @@ function tftRenderBoard(state) {
       html += `<span class="tft-cell-origin-badge">${route.indexOf(cell.index) + 1}</span>`;
     }
 
-    // 本拠地マーク（ボス勢力は種別バッジ＋鍵ロック中なら🔒）
+    // 本拠地マーク（開幕保護中は🛡️ ＞ 鍵ロック中は🔒 ＞ ボス種別バッジ ／ 通常は👑）。
+    // 保護は自分の本拠地にも掛かるが lockedReason は自領には出ない（＝自分から見た可否）ため、
+    // ここは state.turn だけを見て全勢力の本拠地に等しく🛡️を出す。
     const homePlayer = state.players.find(p => p.homeCell === cell.index && !p.eliminated);
     if (homePlayer && cell.ownerId === homePlayer.id) {
       const badge = tftFactionBadge(homePlayer.kind);
-      html += `<span class="tft-cell-home">${lockedReason ? '🔒' : badge || '👑'}</span>`;
+      const mark = tftIsHomeProtectTurn(state.turn) ? '🛡️' : (lockedReason ? '🔒' : badge || '👑');
+      html += `<span class="tft-cell-home">${mark}</span>`;
     }
     // 町・農場レベル（本拠地に限らず、建てたセルすべてに表示。占領されると建物ごと奪われる）
     if (cell.townLevel > 0 || cell.farmLevel > 0) {
@@ -1631,6 +1645,8 @@ function tftRenderGameGuide() {
 
   const rules = [
     ['🏆 勝利条件', `${TFT_CPU_FACTIONS.find(f => f.kind === 'lastboss').name}（${tftCellLabel(TFT_CPU_FACTIONS.find(f => f.kind === 'lastboss').home)}）の撃破で即勝利。${TFT_WIN_CELL_COUNT}マス占領、他勢力の全滅、または${TFT_MAX_TURNS}ターン終了時に最多マスでも勝利。本拠地を落とされると脱落`],
+    ['🛡️ 開幕保護', `最初の${TFT_HOME_PROTECT_YEARS}年（${TFT_HOME_PROTECT_LAST_TURN}ターン目＝1年12月まで）は全勢力の本拠地が不可侵で、侵攻も計略も通らない。`
+      + `CPUも同じ制限を受ける（あなたの本拠地も守られる）。${TFT_HOME_PROTECT_YEARS + 1}年1月＝${TFT_HOME_PROTECT_LAST_TURN + 1}ターン目から解禁。保護中の本拠地は盤面で🛡️`],
     ['🗝 ボスの階段', `盤面には常設のCPU7勢力が居る。`
       + `${TFT_CPU_FACTIONS.filter(f => f.kind === 'normal').map(f => tftCellLabel(f.home)).join('/')} の通常CPUをどれか1つ撃破 → ${TFT_KEY_ITEMS.GREEN.icon}${TFT_KEY_ITEMS.GREEN.name} で `
       + `${TFT_CPU_FACTIONS.filter(f => f.kind === 'midboss').map(f => `${f.name}(${tftCellLabel(f.home)})`).join('・')} に侵攻可能 → どちらか1つ撃破 → ${TFT_KEY_ITEMS.BLACK.icon}${TFT_KEY_ITEMS.BLACK.name} で TFT帝国 に侵攻可能。`
@@ -1689,6 +1705,13 @@ function tftRenderRulebook() {
       `盤面の中心 ${tftCellLabel(lastBoss.home)} に座す「${lastBoss.name}」を撃破すれば即勝利。`
       + `それ以外にも ${TFT_WIN_CELL_COUNT}マスの占領、他の全勢力の脱落、${TFT_MAX_TURNS}ターン終了時点で最多マスのいずれかで勝利となる。`
       + `自分の本拠地を陥落させられると即座に脱落する（残りの領土は本拠地以外すべて中立化する）。`],
+    ['🛡️ 開幕保護（最初の1年）',
+      `ゲーム開始から${TFT_HOME_PROTECT_YEARS}年のあいだ（${TFT_HOME_PROTECT_LAST_TURN}ターン目＝1年12月まで）は、全勢力の本拠地が不可侵になる。`
+      + `この期間は本拠地へ侵攻できず、計略（扇動・引き抜き等）も通らない。制限はCPUにも等しくかかるので、`
+      + `あなたの本拠地が序盤に落とされて何もできないまま脱落する事故は起きない。`
+      + `保護されている本拠地は盤面で🛡️と表示され、画面上部にも残り月数が出る。`
+      + `${TFT_HOME_PROTECT_YEARS + 1}年1月（${TFT_HOME_PROTECT_LAST_TURN + 1}ターン目）から通常どおり侵攻・計略の対象になる。`
+      + `保護されるのは本拠地セルそのものだけで、本拠地以外の領土は最初から奪い合いの対象。`],
     ['🗺️ 盤面と勢力',
       `盤面は${TFT_NUM_ROWS}行のハニカム（${TFT_CELLS}マス）。プレイヤーは開始候補${TFT_PLAYER_START_CELLS.map(tftCellLabel).join('/')}のいずれかからランダムに始まり、`
       + `常設のCPU7勢力（通常CPU4・中ボス2・ラスボス1）が最初から盤面に存在する。`

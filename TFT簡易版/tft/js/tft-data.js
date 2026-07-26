@@ -145,6 +145,16 @@ function tftNextMonthOf(turn, months) {
   return tftMonthOf(turn + tftMonthsUntil(turn, months));
 }
 
+// --- 開幕保護（本拠地の不可侵期間） ---
+// 最初の TFT_HOME_PROTECT_YEARS 年のあいだ、全勢力の本拠地は侵攻・計略とも通らない。
+// 序盤に本拠地を落とされて何もできないまま脱落する事故を防ぐための猶予で、CPU・人間に等しく適用する
+// （判定は tftCellLockReason に集約してあるので、鍵ロックと同じ経路で人間の侵攻・計略・AIの標的選定すべてに効く）。
+const TFT_HOME_PROTECT_YEARS = 1;
+const TFT_HOME_PROTECT_LAST_TURN = TFT_HOME_PROTECT_YEARS * TFT_MONTHS_PER_YEAR; // このターンまで保護（=1年12月）
+function tftIsHomeProtectTurn(turn) { return turn <= TFT_HOME_PROTECT_LAST_TURN; }
+// 保護が解けるまでの残り月数（今月ぶんを含む。0=保護なし）。HUDバッジの表示に使う。
+function tftHomeProtectMonthsLeft(turn) { return Math.max(0, TFT_HOME_PROTECT_LAST_TURN - turn + 1); }
+
 // --- 経済（すべて調整可能なバランス定数） ---
 const TFT_START_GOLD = 33;          // 初期編成資金（ATTACKER_GOLD=25 に+8）
 // 初期食料: 初期編成5体+本拠地1マスで毎月約7消費する。収穫が年2回（3/9月）になったため、

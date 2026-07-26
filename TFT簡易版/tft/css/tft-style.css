@@ -104,6 +104,11 @@
 .tft-hud-item.income-month { padding: 0.25rem 0.7rem; border-radius: 999px; }
 .tft-hud-item.harvest-month { background: #3d5a2a; color: #d8f5c0; }
 .tft-hud-item.income-month  { background: #5a4a1a; color: #ffe9a8; }
+/* 開幕保護バッジ: 本拠地が不可侵の期間だけHUDに出る（期間が明けると hidden で消える） */
+.tft-protect-badge {
+  padding: 0.25rem 0.7rem; border-radius: 999px;
+  background: #24435c; color: #bfe4ff; border: 1px solid #3d6a8f;
+}
 .tft-btn-small { padding: 0.3rem 0.7rem; font-size: 0.9rem; background: var(--card); color: var(--text); }
 
 /* --- レイアウト --- */

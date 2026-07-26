@@ -8,13 +8,15 @@
 
 // CPU勢力同士は不可侵。CPUが侵攻・計略で狙ってよいのは中立地とプレイヤーの領土だけで、
 // 他のCPU勢力の領土には一切手を出さない（結果としてボスの本拠地もAIの対象から自動的に外れるため、
-// AI側に鍵チェックを足す必要はない）。
+// AI側に鍵チェックを足す必要はない）。一方 開幕保護はプレイヤーの本拠地も対象にするので、
+// tftCellLockReason はここで明示的に見る ―― 見ないとCPUが毎ターン通らない侵攻を試み続けることになる。
 // 注: tftBorderTargets 自体は絞らないこと ―― 同関数は tftValidateRoute から人間の侵攻可否判定にも
 // 使われているため、あちらを絞ると人間がCPUを攻められなくなる。
 function tftAiCanTarget(state, playerId, cellIndex) {
   const owner = state.cells[cellIndex].ownerId;
   if (owner === null) return true;      // 中立地は誰でも取りに行く
   if (owner === playerId) return false; // 自領
+  if (tftCellLockReason(state, playerId, cellIndex)) return false; // 開幕保護中の本拠地・鍵ロック
   return !(tftIsCpuFaction(playerId) && tftIsCpuFaction(owner));
 }
 

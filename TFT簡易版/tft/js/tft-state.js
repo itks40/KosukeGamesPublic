@@ -184,12 +184,22 @@ function tftHasKey(state, playerId, keyId) {
   return state.players[playerId].items.some(i => i.id === keyId);
 }
 
-// ボス本拠地の鍵ロック。侵攻・計略できるなら null、できないなら理由の文字列を返す。
-// ロックの対象はボスの「本拠地セルそのもの」だけで、中ボスが外へ広げた領土は鍵なしで攻められる。
-// ボスが本拠地を失った後（＝別勢力の領土になった後）もロックしない。
+// セルへの手出し（侵攻・計略）が封じられている理由。通せるなら null、封じられているなら理由の文字列を返す。
+// 封じる条件は2つあり、どちらも対象は「本拠地セルそのもの」だけ:
+//   1. 開幕保護 — 最初の1年は全勢力の本拠地が不可侵（CPU・人間で条件は同じ）
+//   2. 鍵ロック — ボスの本拠地。中ボスが外へ広げた領土は鍵なしで攻められる
+// 本拠地を失った後（＝別勢力の領土になった後）はどちらもロックしない。
 function tftCellLockReason(state, playerId, cellIndex) {
   const owner = state.cells[cellIndex].ownerId;
-  if (owner === null || owner === playerId || !tftIsCpuFaction(owner)) return null;
+  if (owner === null || owner === playerId) return null;
+
+  // 開幕保護。CPU・人間を問わず、この期間はどの本拠地も落とせない。
+  if (tftIsHomeProtectTurn(state.turn) && cellIndex === state.players[owner].homeCell) {
+    return `🛡️ ${tftCellLabel(cellIndex)}（${state.players[owner].name}）の本拠地は開幕保護中です`
+      + `（あと${tftHomeProtectMonthsLeft(state.turn)}ヶ月・${TFT_HOME_PROTECT_YEARS + 1}年1月から侵攻・計略とも解禁）`;
+  }
+
+  if (!tftIsCpuFaction(owner)) return null;
   const boss = state.players[owner];
   if (cellIndex !== boss.homeCell) return null;
   const lockKeyId = tftFactionKind(state, owner).lockKeyId;
